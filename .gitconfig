@@ -9,7 +9,7 @@
 [apply]
 	whitespace = fix
 [push]
-	default = current
+	default = upstream
 [alias]
 	unstage = reset HEAD
 	count = rev-list HEAD --count
