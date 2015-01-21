@@ -1,0 +1,20 @@
+[user]
+	email = daniel@danielgibbs.name
+	name = Daniel Gibbs
+[color]
+	ui = true
+[core]
+	editor = vi
+	whitespace = trailing-space,space-before-tab,tabwidth=4
+[apply]
+	whitespace = fix
+[push]
+	default = current
+[alias]
+	unstage = reset HEAD
+	count = rev-list HEAD --count
+	diff2 = diff --word-diff=color
+[advice]
+	statusHints = false
+[merge]
+	tool = vimdiff

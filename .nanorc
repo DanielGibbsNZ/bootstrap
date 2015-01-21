@@ -1,0 +1,9 @@
+set nowrap
+unset backup
+set nohelp
+set smooth
+set tabsize "4"
+set suspend
+set multibuffer
+syntax "all" ".*"
+color ,green "[[:space:]]+$"
