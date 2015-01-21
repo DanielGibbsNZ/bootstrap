@@ -49,6 +49,7 @@ for FILE in ${RC_FILES[*]}; do
 		echo -e "\033[32mDONE\033[0m"
 	else
 		echo -e "\033[31mFAILED\033[0m"
+		continue
 	fi
 
 	printf "Installing ${FILE}... "
