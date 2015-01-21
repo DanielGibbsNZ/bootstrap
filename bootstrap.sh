@@ -10,9 +10,20 @@
 #
 
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
+INSTALL_LOCATION=~
 RC_FILES=(".bashrc" ".vimrc" ".nanorc" ".gitconfig")
 
-# 0. Detect operating system (not exhaustive).
+# Process arguments.
+if [ "$1" = "-d" -o "$1" = "--dest" ]; then
+	if [ "$2" -a -d "$2" ]; then
+		INSTALL_LOCATION="$2"
+	else
+		echo "Invalid destination: $2"
+		exit 1
+	fi
+fi
+
+# Detect operating system (not exhaustive).
 if [ "$(uname -s)" == "Darwin" ]; then
     PLATFORM="OS X"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
@@ -23,7 +34,7 @@ elif [ "$(expr substr $(uname -s) 1 6)" == "CYGWIN" ]; then
     PLATFORM="Windows"
 fi
 
-# 0. Check for wget or cURL.
+# Check for wget or cURL.
 if type -t curl | grep -q file; then
 	DOWNLOAD="curl -s"
 	OUTPUT="-o"
@@ -35,7 +46,7 @@ else
 	exit 1
 fi
 
-# 0. Check for colordiff.
+# Check for colordiff.
 if type -t colordiff | grep -q file; then
 	DIFF="colordiff"
 else
@@ -53,9 +64,9 @@ for FILE in ${RC_FILES[*]}; do
 	fi
 
 	printf "Installing ${FILE}... "
-	if [ -e ~/${FILE} ]; then
+	if [ -e ${INSTALL_LOCATION}/${FILE} ]; then
 		# If file already exists check for differences.
-		if cmp -s ~/${FILE} /tmp/${FILE}; then
+		if cmp -s ${INSTALL_LOCATION}/${FILE} /tmp/${FILE}; then
 			echo -e "\033[32mDONE\033[0m"
 		else
 			# If there are differences, ask the user which version they want.
@@ -64,17 +75,17 @@ for FILE in ${RC_FILES[*]}; do
 			while [ "${REPLACE}" != "y" -a "${REPLACE}" != "n" ]; do
 				read -p "Replace original file (d for diff)? (y/n/d) " REPLACE
 				if [ "${REPLACE}" = "d" ]; then
-					${DIFF} ~/${FILE} /tmp/${FILE} | less -r
+					${DIFF} ${INSTALL_LOCATION}/${FILE} /tmp/${FILE} | less -r
 				fi
 			done
 			if [ "${REPLACE}" = "y" ]; then
-				mv /tmp/${FILE} ~/${FILE}
+				mv /tmp/${FILE} ${INSTALL_LOCATION}/${FILE}
 			else
 				echo "The downloaded version of ${FILE} can be found in /tmp/${FILE} for manual merging."
 			fi
 		fi
 	else
-		mv /tmp/${FILE} ~/${FILE}
+		mv /tmp/${FILE} ${INSTALL_LOCATION}/${FILE}
 		echo -e "\033[32mDONE\033[0m"
 	fi
 done
