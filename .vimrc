@@ -40,11 +40,6 @@ set smartcase
 " Highlight search matches.
 set hlsearch
 
-" Search mappings: These will make it so that going to the next one in a
-" search will center on the line it's found in.
-map N Nzz
-map n nzz
-
 " Always use UTF-8.
 set enc=utf-8
 set fenc=utf-8
@@ -62,12 +57,13 @@ set number
 set nobackup
 set noswapfile
 
-" Show commands as they're being typed
+" Show commands as they're being typed.
 set showcmd
 
 " Bash-style tab completion
 set wildmenu
 set wildmode=longest,list
+set wildignore=*.o,*~,*.pyc
 
 " Handle accidental shifting of commands.
 if has("user_commands")
@@ -83,14 +79,24 @@ nnoremap <silent> j gj
 inoremap <silent> <Up> <Esc>gka
 inoremap <silent> <Down> <Esc>gja
 
+" Clear last search highlighting when space is pressed.
+map <Space> :noh<CR>
+
+" Automatically quit when the last buffer is closed.
+function! CloseBuffer()
+	if len(filter(range(1,bufnr('$')), 'buflisted(v:val)==1')) < 2 | exe ":q" | else | exe ":bdelete" | endif
+endfunction
+map \\ :call CloseBuffer()<CR>
+
+" Make it easier to work with multiple buffers.
+map <S-Right> :bnext<CR>
+map <S-Left> :bprevious<CR>
+
 " Display the cursor at the left of a TAB.
 set list lcs=tab:\ \ 
 
 " Add a few extra tweaks if possible.
 if has("autocmd")
-	" Automatically quite after last buffer closed.
-	autocmd BufDelete * if len(filter(range(1, bufnr('$')), '!empty(bufname(v:val)) && buflisted(v:val)')) == 1 | quit! | endif
-
 	" Detect tabs or spaces. Adapted from http://www.outflux.net/blog/archives/2007/03/09/detecting-space-vs-tab-indentation-type-in-vim/
 	autocmd BufReadPost * if len(filter(getbufline(winbufnr(0), 1, "$"), 'v:val =~ "^ "')) > len(filter(getbufline(winbufnr(0), 1, "$"), 'v:val =~ "^\\t"')) | set expandtab | endif
 endif
