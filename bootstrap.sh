@@ -11,6 +11,7 @@
 
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION=~
+NANORC_LOCATIONS=("/usr/share/nano" "/usr/local/share/nano")
 RC_FILES=(".bashrc" ".vimrc" ".nanorc" ".gitconfig")
 
 # Process arguments.
@@ -61,6 +62,18 @@ for FILE in ${RC_FILES[*]}; do
 	else
 		echo -e "\033[31mFAILED\033[0m"
 		continue
+	fi
+
+	# Search for nanorc files and add them to .nanorc.
+	if [ "${FILE}" = ".nanorc" ]; then
+		for NANORC_LOCATION in ${NANORC_LOCATIONS[*]}; do
+			if [ -d ${NANORC_LOCATION} ]; then
+				echo "" >> /tmp/${FILE}
+				for NANORC_FILE in $(ls ${NANORC_LOCATION}/*.nanorc 2>/dev/null); do
+					echo "include ${NANORC_FILE}" >> /tmp/${FILE}
+				done
+			fi
+		done
 	fi
 
 	printf "Installing ${FILE}... "
