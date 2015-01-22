@@ -37,7 +37,7 @@ fi
 
 # Check for wget or cURL.
 if type -t curl | grep -q file; then
-	DOWNLOAD="curl -s"
+	DOWNLOAD="curl -fsL"
 	OUTPUT="-o"
 elif type -t wget | grep -q file; then
 	DOWNLOAD="wget -q"
