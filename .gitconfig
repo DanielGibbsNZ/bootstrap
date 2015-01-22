@@ -6,6 +6,7 @@
 [core]
 	editor = vi
 	whitespace = trailing-space,space-before-tab,tabwidth=4
+	autocrlf = input
 [apply]
 	whitespace = fix
 [push]
