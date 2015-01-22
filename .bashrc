@@ -46,6 +46,9 @@ export EDITOR="vi"
 
 # Cross-platform aliases.
 alias todo='vi .todo'
+if type -t colordiff | grep -q "file"; then
+	alias diff='colordiff'
+fi
 
 # Platform dependant aliases.
 if [ "${PLATFORM}" = "Windows" ]; then
