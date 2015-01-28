@@ -56,13 +56,13 @@ fi
 
 # Detect operating system (not exhaustive).
 if [ "$(uname -s)" == "Darwin" ]; then
-    PLATFORM="OS X"
+	PLATFORM="OS X"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    PLATFORM="Linux"
+	PLATFORM="Linux"
 elif [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]; then
-    PLATFORM="Windows"
+	PLATFORM="Windows"
 elif [ "$(expr substr $(uname -s) 1 6)" == "CYGWIN" ]; then
-    PLATFORM="Windows"
+	PLATFORM="Windows"
 fi
 
 # Check for wget or cURL.
