@@ -112,7 +112,6 @@ done
 # OS X specific setup.
 if [ "${PLATFORM}" = "OS X" ]; then
 	# Download and install .profile.
-	echo
 	printf "Downloading .profile... "
 	if ${DOWNLOAD} ${FILE_LOCATION}/osx/.profile ${OUTPUT} /tmp/.profile; then
 		echo -e "\033[32mDONE\033[0m"
@@ -123,11 +122,34 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 	echo
 	if command -v brew &>/dev/null; then
-		# TODO: Check for missing packages.
+		printf "Downloading Homebrew formula list... "
+		if ${DOWNLOAD} ${FILE_LOCATION}/osx/homebrew-formulae ${OUTPUT} /tmp/homebrew-formulae; then
+			echo -e "\033[32mDONE\033[0m"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+
+		# Check for missing formulae.
+		brew list > /tmp/homebrew-installed
+		FORMULAE_TO_INSTALL=()
+		for FORMULA in $(cat /tmp/homebrew-formulae); do
+			if ! grep "^${FORMULA}$" -q /tmp/homebrew-installed; then
+				echo -e "${FORMULA} is not installed."
+				FORMULAE_TO_INSTALL+=("${FORMULA}")
+			fi
+		done
+		rm -f /tmp/homebrew-formulae /tmp/homebrew-installed
+		if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
+			echo
+			echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[*]}\033[0m."
+		else
+			echo "All formulae installed."
+		fi
+		echo
 		echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
 	else
 		echo "Homebrew is not installed, you can install it with the following command."
 		echo -e "\033[36;1mruby -e \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"\033[0m"
-		echo -e "Once installed, don't forget to run \033[36;1mbrew doctor\033[0m."
+		echo -e "Once installed, don't forget to run \033[36;1mbrew doctor\033[0m and rerun this script."
 	fi
 fi
