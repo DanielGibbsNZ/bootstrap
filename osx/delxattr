@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Remove all extra attributes from files.
+#
+
+IFS="
+"
+for FILE in $@; do
+	if [ `ls -ld "${FILE}" | awk '{print $1}' | grep "@" -c` -gt 0 ]; then
+		for ATTR in `ls -ld@ "${FILE}" | tail -n +2 | awk '{print $1}'`; do
+			xattr -d ${ATTR} "${FILE}"
+		done
+	fi
+done
+

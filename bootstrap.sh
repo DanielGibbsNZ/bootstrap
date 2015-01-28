@@ -10,17 +10,18 @@
 #
 
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
-INSTALL_LOCATION="${HOME}"
+INSTALL_LOCATION=${HOME}
 NANORC_LOCATIONS=("/usr/share/nano" "/usr/local/share/nano")
 RC_FILES=(".bashrc" ".vimrc" ".nanorc" ".gitconfig")
 
 # File installation function.
 function install_file {
 	FILE=$1
+	DEST=$2
 	printf "Installing ${FILE}... "
-	if [ -e ${INSTALL_LOCATION}/${FILE} ]; then
+	if [ -e ${DEST}/${FILE} ]; then
 		# If file already exists check for differences.
-		if cmp -s ${INSTALL_LOCATION}/${FILE} /tmp/${FILE}; then
+		if cmp -s ${DEST}/${FILE} /tmp/${FILE}; then
 			echo -e "\033[32mDONE\033[0m"
 		else
 			# If there are differences, ask the user which version they want.
@@ -29,17 +30,17 @@ function install_file {
 			while [ "${REPLACE}" != "y" -a "${REPLACE}" != "n" ]; do
 				read -p "Replace original file (d for diff)? (y/n/d) " REPLACE
 				if [ "${REPLACE}" = "d" ]; then
-					${DIFF} ${INSTALL_LOCATION}/${FILE} /tmp/${FILE} | less -r
+					${DIFF} ${DEST}/${FILE} /tmp/${FILE} | less -r
 				fi
 			done
 			if [ "${REPLACE}" = "y" ]; then
-				mv /tmp/${FILE} ${INSTALL_LOCATION}/${FILE}
+				mv /tmp/${FILE} ${DEST}/${FILE}
 			else
 				echo "The downloaded version of ${FILE} can be found in /tmp/${FILE} for manual merging."
 			fi
 		fi
 	else
-		mv /tmp/${FILE} ${INSTALL_LOCATION}/${FILE}
+		mv /tmp/${FILE} ${DEST}/${FILE}
 		echo -e "\033[32mDONE\033[0m"
 	fi
 }
@@ -47,7 +48,7 @@ function install_file {
 # Process arguments.
 if [ "$1" = "-d" -o "$1" = "--dest" ]; then
 	if [ "$2" -a -d "$2" ]; then
-		INSTALL_LOCATION="$2"
+		INSTALL_LOCATION=$2
 	else
 		echo "Invalid destination: $2"
 		exit 1
@@ -84,7 +85,7 @@ else
 	DIFF="diff"
 fi
 
-# 1. Download and install RC files.
+# Download and install RC files.
 for FILE in ${RC_FILES[*]}; do
 	printf "Downloading ${FILE}... "
 	if ${DOWNLOAD} ${FILE_LOCATION}/${FILE} ${OUTPUT} /tmp/${FILE}; then
@@ -106,7 +107,7 @@ for FILE in ${RC_FILES[*]}; do
 		done
 	fi
 
-	install_file "${FILE}"
+	install_file ${FILE} ${INSTALL_LOCATION}
 done
 
 # OS X specific setup.
@@ -115,11 +116,29 @@ if [ "${PLATFORM}" = "OS X" ]; then
 	printf "Downloading .profile... "
 	if ${DOWNLOAD} ${FILE_LOCATION}/osx/.profile ${OUTPUT} /tmp/.profile; then
 		echo -e "\033[32mDONE\033[0m"
-		install_file ".profile"
+		install_file .profile ${INSTALL_LOCATION}
 	else
 		echo -e "\033[31mFAILED\033[0m"
 	fi
 
+	# Download and install scripts.
+	echo
+	OSX_SCRIPTS=("delxattr")
+	if [ ! -d ${INSTALL_LOCATION}/Scripts ]; then
+		mkdir -p ${INSTALL_LOCATION}/Scripts
+	fi
+	for SCRIPT in ${OSX_SCRIPTS[*]}; do
+		printf "Downloading ${SCRIPT}... "
+		if ${DOWNLOAD} ${FILE_LOCATION}/osx/${SCRIPT} ${OUTPUT} /tmp/${SCRIPT}; then
+			echo -e "\033[32mDONE\033[0m"
+			chmod +x /tmp/${SCRIPT}
+			install_file ${SCRIPT} ${INSTALL_LOCATION}/Scripts
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+	done
+
+	# Check Homebrew status.
 	echo
 	if command -v brew &>/dev/null; then
 		printf "Downloading Homebrew formula list... "
