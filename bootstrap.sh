@@ -86,6 +86,7 @@ else
 fi
 
 # Download and install RC files.
+echo -e "\033[30;1m===>\033[0m CONFIG FILES \033[30;1m<===\033[0m"
 for FILE in ${RC_FILES[*]}; do
 	printf "Downloading ${FILE}... "
 	if ${DOWNLOAD} ${FILE_LOCATION}/${FILE} ${OUTPUT} /tmp/${FILE}; then
@@ -123,6 +124,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 	# Download and install scripts.
 	echo
+	echo -e "\033[30;1m===>\033[0m SCRIPTS \033[30;1m<===\033[0m"
 	OSX_SCRIPTS=("delxattr")
 	if [ ! -d ${INSTALL_LOCATION}/Scripts ]; then
 		mkdir -p ${INSTALL_LOCATION}/Scripts
@@ -140,6 +142,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 	# Check Homebrew status.
 	echo
+	echo -e "\033[30;1m===>\033[0m HOMEBREW \033[30;1m<===\033[0m"
 	if command -v brew &>/dev/null; then
 		printf "Downloading Homebrew formula list... "
 		if ${DOWNLOAD} ${FILE_LOCATION}/osx/homebrew-formulae ${OUTPUT} /tmp/homebrew-formulae; then
@@ -164,7 +167,6 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
-		echo
 		echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
 	else
 		echo "Homebrew is not installed; you can install it with the following command."
@@ -173,8 +175,9 @@ if [ "${PLATFORM}" = "OS X" ]; then
 	fi
 fi
 
-# Python module setup.
+# Check pip status.
 echo
+echo -e "\033[30;1m===>\033[0m PIP \033[30;1m<===\033[0m"
 if command -v python &>/dev/null && command -v pip &>/dev/null; then
 	# This can be used when automatically installing packages.
 	SITE_PACKAGE_DIR=$(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" &>/dev/null)
@@ -199,15 +202,14 @@ if command -v python &>/dev/null && command -v pip &>/dev/null; then
 		rm -f /tmp/pip-packages /tmp/pip-installed
 		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
 			echo
-			echo -e "You can install the missing packages with \033[36;1mpip install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+			echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 		else
 			echo "All packages installed."
 		fi
 	else
 		echo -e "\033[31mFAILED\033[0m"
 	fi
-	echo
-	echo -e "Remember to run \033[36;1mpip install --upgrade pip\033[0m regularly."
+	echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
 else
 	if [ "${PLATFORM}" = "OS X" ]; then
 		echo "Pip is not installed; you can install it by updating your version of Python using Homebrew."
@@ -215,6 +217,52 @@ else
 		echo -e "Pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
 	elif [ "${PLATFORM}" = "Linux" ]; then
 		echo -e "Pip is not installed; you can install it by installing python-pip."
+	fi
+	echo -e "Once installed, don't forget to rerun this script."
+fi
+
+# Check pip3 status.
+echo
+echo -e "\033[30;1m===>\033[0m PIP3 \033[30;1m<===\033[0m"
+if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
+	# This can be used when automatically installing packages.
+	SITE_PACKAGE_DIR=$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" &>/dev/null)
+	if [ ! -w ${SITE_PACKAGE_DIR} ]; then
+		PIP="sudo pip3"
+	else
+		PIP="pip3"
+	fi
+	printf "Downloading pip3 formula list... "
+	if ${DOWNLOAD} ${FILE_LOCATION}/pip3-packages ${OUTPUT} /tmp/pip3-packages; then
+		echo -e "\033[32mDONE\033[0m"
+
+		# Check for missing packages.
+		pip3 freeze > /tmp/pip3-installed
+		PACKAGES_TO_INSTALL=()
+		for PACKAGE in $(cat /tmp/pip3-packages); do
+			if ! grep "^${PACKAGE}==" -q /tmp/pip3-installed; then
+				echo -e "${PACKAGE} is not installed."
+				PACKAGES_TO_INSTALL+=("${PACKAGE}")
+			fi
+		done
+		rm -f /tmp/pip3-packages /tmp/pip3-installed
+		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+			echo
+			echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+		else
+			echo "All packages installed."
+		fi
+	else
+		echo -e "\033[31mFAILED\033[0m"
+	fi
+	echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
+else
+	if [ "${PLATFORM}" = "OS X" ]; then
+		echo "Pip3 is not installed; you can install it by updating your version of Python using Homebrew."
+	elif [ "${PLATFORM}" = "Windows" ]; then
+		echo -e "Pip3 is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
+	elif [ "${PLATFORM}" = "Linux" ]; then
+		echo -e "Pip3 is not installed; you can install it by installing python3-pip."
 	fi
 	echo -e "Once installed, don't forget to rerun this script."
 fi
