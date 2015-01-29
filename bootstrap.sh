@@ -2,12 +2,6 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-# The following files are downloaded from my web server and copied to the appropriate place:
-# - .bashrc
-# - .vimrc
-# - .nanorc
-# - .gitconfig
-#
 
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION=${HOME}
