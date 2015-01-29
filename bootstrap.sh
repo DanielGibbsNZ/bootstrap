@@ -169,6 +169,46 @@ if [ "${PLATFORM}" = "OS X" ]; then
 	fi
 fi
 
+# Linux specific setup.
+if [ "${PLATFORM}" = "Linux" ]; then
+	# Check Aptitude status.
+	echo
+	echo -e "\033[30;1m===>\033[0m PACKAGES \033[30;1m<===\033[0m"
+	if command -v apt-get &>/dev/null; then
+		if [ ! -w /var/lib/dpkg ]; then
+			APT_GET="sudo apt-get"
+		else
+			APT_GET="apt-get"
+		fi
+		printf "Downloading Aptitude package list... "
+		if ${DOWNLOAD} ${FILE_LOCATION}/linux/aptitude-packages ${OUTPUT} /tmp/aptitude-packages; then
+			echo -e "\033[32mDONE\033[0m"
+
+			# Check for missing packages.
+			dpkg --get-selections | awk '{print $1}' > /tmp/aptitude-installed
+			PACKAGES_TO_INSTALL=()
+			for PACKAGE in $(cat /tmp/aptitude-packages); do
+				if ! grep "^${PACKAGE}$" -q /tmp/aptitude-installed; then
+					echo -e "${PACKAGE} is not installed."
+					PACKAGES_TO_INSTALL+=("${PACKAGE}")
+				fi
+			done
+			rm -f /tmp/aptitude-packages /tmp/aptitude-installed
+			if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+				echo
+				echo -e "You can install the missing packages with \033[36;1m${APT_GET} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+			else
+				echo "All packages installed."
+			fi
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+		echo -e "Remember to run \033[36;1m${APT_GET} update\033[0m and \033[36;1m${APT_GET} upgrade\033[0m regularly."
+	else
+		echo "What package manager are you using?"
+	fi
+fi
+
 # Check pip status.
 echo
 echo -e "\033[30;1m===>\033[0m PIP \033[30;1m<===\033[0m"
