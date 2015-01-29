@@ -254,7 +254,7 @@ else
 	if [ "${PLATFORM}" = "OS X" ]; then
 		echo "Pip3 is not installed; you can install it by updating your version of Python using Homebrew."
 	elif [ "${PLATFORM}" = "Windows" ]; then
-		echo -e "Pip3 is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
+		echo -e "Pip3 is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
 	elif [ "${PLATFORM}" = "Linux" ]; then
 		echo -e "Pip3 is not installed; you can install it by installing python3-pip."
 	fi
