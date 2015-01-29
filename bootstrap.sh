@@ -144,31 +144,77 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		printf "Downloading Homebrew formula list... "
 		if ${DOWNLOAD} ${FILE_LOCATION}/osx/homebrew-formulae ${OUTPUT} /tmp/homebrew-formulae; then
 			echo -e "\033[32mDONE\033[0m"
+
+			# Check for missing formulae.
+			brew list > /tmp/homebrew-installed
+			FORMULAE_TO_INSTALL=()
+			for FORMULA in $(cat /tmp/homebrew-formulae); do
+				if ! grep "^${FORMULA}$" -q /tmp/homebrew-installed; then
+					echo -e "${FORMULA} is not installed."
+					FORMULAE_TO_INSTALL+=("${FORMULA}")
+				fi
+			done
+			rm -f /tmp/homebrew-formulae /tmp/homebrew-installed
+			if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
+				echo
+				echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[*]}\033[0m."
+			else
+				echo "All formulae installed."
+			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"
-		fi
-
-		# Check for missing formulae.
-		brew list > /tmp/homebrew-installed
-		FORMULAE_TO_INSTALL=()
-		for FORMULA in $(cat /tmp/homebrew-formulae); do
-			if ! grep "^${FORMULA}$" -q /tmp/homebrew-installed; then
-				echo -e "${FORMULA} is not installed."
-				FORMULAE_TO_INSTALL+=("${FORMULA}")
-			fi
-		done
-		rm -f /tmp/homebrew-formulae /tmp/homebrew-installed
-		if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
-			echo
-			echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[*]}\033[0m."
-		else
-			echo "All formulae installed."
 		fi
 		echo
 		echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
 	else
-		echo "Homebrew is not installed, you can install it with the following command."
+		echo "Homebrew is not installed; you can install it with the following command."
 		echo -e "\033[36;1mruby -e \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"\033[0m"
 		echo -e "Once installed, don't forget to run \033[36;1mbrew doctor\033[0m and rerun this script."
 	fi
+fi
+
+# Python module setup.
+echo
+if command -v python &>/dev/null && command -v pip &>/dev/null; then
+	# This can be used when automatically installing packages.
+	SITE_PACKAGE_DIR=$(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" &>/dev/null)
+	if [ ! -w ${SITE_PACKAGE_DIR} ]; then
+		PIP="sudo pip"
+	else
+		PIP="pip"
+	fi
+	printf "Downloading pip formula list... "
+	if ${DOWNLOAD} ${FILE_LOCATION}/pip-packages ${OUTPUT} /tmp/pip-packages; then
+		echo -e "\033[32mDONE\033[0m"
+
+		# Check for missing packages.
+		pip freeze > /tmp/pip-installed
+		PACKAGES_TO_INSTALL=()
+		for PACKAGE in $(cat /tmp/pip-packages); do
+			if ! grep "^${PACKAGE}==" -q /tmp/pip-installed; then
+				echo -e "${PACKAGE} is not installed."
+				PACKAGES_TO_INSTALL+=("${PACKAGE}")
+			fi
+		done
+		rm -f /tmp/pip-packages /tmp/pip-installed
+		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+			echo
+			echo -e "You can install the missing packages with \033[36;1mpip install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+		else
+			echo "All packages installed."
+		fi
+	else
+		echo -e "\033[31mFAILED\033[0m"
+	fi
+	echo
+	echo -e "Remember to run \033[36;1mpip install --upgrade pip\033[0m regularly."
+else
+	if [ "${PLATFORM}" = "OS X" ]; then
+		echo "Pip is not installed; you can install it by updating your version of Python using Homebrew."
+	elif [ "${PLATFORM}" = "Windows" ]; then
+		echo -e "Pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
+	elif [ "${PLATFORM}" = "Linux" ]; then
+		echo -e "Pip is not installed; you can install it by installing python-pip."
+	fi
+	echo -e "Once installed, don't forget to rerun this script."
 fi
