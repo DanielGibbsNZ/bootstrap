@@ -66,4 +66,5 @@ elif [ "${PLATFORM}" = "Linux" ]; then
 elif [ "${PLATFORM}" = "OS X" ]; then
 	alias ls='ls -G'
 	alias grep='grep --color=auto'
+	alias fixpref='killall -u $(whoami) cfprefsd'
 fi
