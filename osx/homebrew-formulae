@@ -3,7 +3,6 @@ ant
 apktool
 arping
 binutils
-brew-cask
 colordiff
 dex2jar
 dos2unix
@@ -19,14 +18,11 @@ httpry
 id3lib
 iftop
 imagemagick
-imagesnap
-jad
 jpegoptim
 markdown
 minicom
 mitmproxy
 mtr
-nano
 nmap
 p7zip
 pngcrush
@@ -34,7 +30,6 @@ psgrep
 pstree
 python
 python3
-svg2png
 tcping
 tcptraceroute
 tmux
@@ -43,3 +38,6 @@ vim
 wakeonlan
 wget
 wireshark
+homebrew/dupes/nano
+homebrew/binary/jad
+Caskroom/cask/xquartz

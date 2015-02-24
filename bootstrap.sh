@@ -90,7 +90,7 @@ fi
 trap "rm -rf ${TMP_DIR}; exit 0" EXIT SIGINT SIGKILL SIGTERM
 
 # Download and install RC files.
-echo -e "\033[30;1m===>\033[0m CONFIG FILES \033[30;1m<===\033[0m"
+echo -e "\033[37m===>\033[0m CONFIG FILES \033[37m<===\033[0m"
 for FILE in ${RC_FILES[*]}; do
 	printf "Downloading ${FILE}... "
 	if ${DOWNLOAD} ${FILE_LOCATION}/${FILE} ${OUTPUT} ${TMP_DIR}/${FILE}; then
@@ -128,7 +128,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 	# Download and install scripts.
 	echo
-	echo -e "\033[30;1m===>\033[0m SCRIPTS \033[30;1m<===\033[0m"
+	echo -e "\033[37m===>\033[0m SCRIPTS \033[37m<===\033[0m"
 	OSX_SCRIPTS=("delxattr")
 	if [ ! -d ${INSTALL_LOCATION}/Scripts ]; then
 		mkdir -p ${INSTALL_LOCATION}/Scripts
@@ -146,7 +146,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 	# Check Homebrew status.
 	echo
-	echo -e "\033[30;1m===>\033[0m HOMEBREW \033[30;1m<===\033[0m"
+	echo -e "\033[37m===>\033[0m HOMEBREW \033[37m<===\033[0m"
 	if command -v brew &>/dev/null; then
 		printf "Downloading Homebrew formula list... "
 		if ${DOWNLOAD} ${FILE_LOCATION}/osx/homebrew-formulae ${OUTPUT} ${TMP_DIR}/homebrew-formulae; then
@@ -154,15 +154,18 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 			# Check for missing formulae.
 			brew list > ${TMP_DIR}/homebrew-installed
+			if command -v brew-cask &>/dev/null; then
+				brew cask list >> ${TMP_DIR}/homebrew-installed
+			fi
 			FORMULAE_TO_INSTALL=()
 			for FORMULA in $(cat ${TMP_DIR}/homebrew-formulae); do
-				if ! grep "^${FORMULA}$" -q ${TMP_DIR}/homebrew-installed; then
-					echo -e "${FORMULA} is not installed."
+				LAST_PART=$(echo "${FORMULA}" | grep -o "[^/]*$")
+				if ! grep "^${LAST_PART}$" -q ${TMP_DIR}/homebrew-installed; then
+					echo -e "${LAST_PART} is not installed."
 					FORMULAE_TO_INSTALL+=("${FORMULA}")
 				fi
 			done
 			if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
-				echo
 				echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[*]}\033[0m."
 			else
 				echo "All formulae installed."
@@ -182,7 +185,7 @@ fi
 if [ "${PLATFORM}" = "Linux" ]; then
 	# Check Aptitude status.
 	echo
-	echo -e "\033[30;1m===>\033[0m PACKAGES \033[30;1m<===\033[0m"
+	echo -e "\033[37m===>\033[0m PACKAGES \033[37m<===\033[0m"
 	if command -v apt-get &>/dev/null; then
 		if [ ! -w /var/lib/dpkg ]; then
 			APT_GET="sudo apt-get"
@@ -203,7 +206,6 @@ if [ "${PLATFORM}" = "Linux" ]; then
 				fi
 			done
 			if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-				echo
 				echo -e "You can install the missing packages with \033[36;1m${APT_GET} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 			else
 				echo "All packages installed."
@@ -219,7 +221,7 @@ fi
 
 # Check pip status.
 echo
-echo -e "\033[30;1m===>\033[0m PIP \033[30;1m<===\033[0m"
+echo -e "\033[37m===>\033[0m PIP \033[37m<===\033[0m"
 if command -v python &>/dev/null && command -v pip &>/dev/null; then
 	# This can be used when automatically installing packages.
 	SITE_PACKAGE_DIR=$(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" &>/dev/null)
@@ -242,7 +244,6 @@ if command -v python &>/dev/null && command -v pip &>/dev/null; then
 			fi
 		done
 		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-			echo
 			echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 		else
 			echo "All packages installed."
@@ -253,18 +254,18 @@ if command -v python &>/dev/null && command -v pip &>/dev/null; then
 	echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
 else
 	if [ "${PLATFORM}" = "OS X" ]; then
-		echo "Pip is not installed; you can install it by updating your version of Python using Homebrew."
+		echo "pip is not installed; you can install it by updating your version of Python using Homebrew."
 	elif [ "${PLATFORM}" = "Windows" ]; then
-		echo -e "Pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
+		echo -e "pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
 	elif [ "${PLATFORM}" = "Linux" ]; then
-		echo -e "Pip is not installed; you can install it by installing python-pip."
+		echo -e "pip is not installed; you can install it by installing python-pip."
 	fi
 	echo -e "Once installed, don't forget to rerun this script."
 fi
 
 # Check pip3 status.
 echo
-echo -e "\033[30;1m===>\033[0m PIP3 \033[30;1m<===\033[0m"
+echo -e "\033[37m===>\033[0m PIP3 \033[37m<===\033[0m"
 if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
 	# This can be used when automatically installing packages.
 	SITE_PACKAGE_DIR=$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" &>/dev/null)
@@ -287,7 +288,6 @@ if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
 			fi
 		done
 		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-			echo
 			echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 		else
 			echo "All packages installed."
@@ -298,11 +298,11 @@ if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
 	echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
 else
 	if [ "${PLATFORM}" = "OS X" ]; then
-		echo "Pip3 is not installed; you can install it by updating your version of Python using Homebrew."
+		echo "pip3 is not installed; you can install it by updating your version of Python using Homebrew."
 	elif [ "${PLATFORM}" = "Windows" ]; then
-		echo -e "Pip3 is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
+		echo -e "pip3 is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
 	elif [ "${PLATFORM}" = "Linux" ]; then
-		echo -e "Pip3 is not installed; you can install it by installing python3-pip."
+		echo -e "pip3 is not installed; you can install it by installing python3-pip."
 	fi
 	echo -e "Once installed, don't forget to rerun this script."
 fi
