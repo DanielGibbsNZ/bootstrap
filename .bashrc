@@ -57,6 +57,9 @@ if [ "${PLATFORM}" = "Windows" ]; then
 	alias open='cygstart'
 	alias winpath='cygpath -w `pwd`'
 	alias ifconfig='netsh interface ip show config'
+	if command -v vim &>/dev/null; then
+		alias vi='vim'
+	fi
 elif [ "${PLATFORM}" = "Linux" ]; then
 	if [ -x /usr/bin/dircolors ]; then
 		test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
