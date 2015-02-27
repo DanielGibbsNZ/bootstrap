@@ -219,6 +219,28 @@ if [ "${PLATFORM}" = "Linux" ]; then
 	fi
 fi
 
+# Windows specific setup.
+if [ "${PLATFORM}" = "Windows" ]; then
+	# Download and install .profile.
+	printf "Downloading .profile... "
+	if ${DOWNLOAD} "${FILE_LOCATION}/windows/.profile" ${OUTPUT} "${TMP_DIR}/.profile"; then
+		echo -e "\033[32mDONE\033[0m"
+		install_file ".profile" "${INSTALL_LOCATION}"
+	else
+		echo -e "\033[31mFAILED\033[0m"
+	fi
+
+	# Download and install git-prompt.sh.
+	if [ ! -f "/etc/bash_completion.d/git-prompt.sh" ]; then
+		printf "Downloading git-prompt.sh... "
+		if ${DOWNLOAD} "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh" ${OUTPUT} "/etc/bash_completion.d/git-prompt.sh"; then
+			echo -e "\033[32mDONE\033[0m"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+	fi
+fi
+
 # Check pip status.
 echo
 echo -e "\033[37m===>\033[0m PIP \033[37m<===\033[0m"
