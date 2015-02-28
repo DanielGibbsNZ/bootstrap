@@ -166,11 +166,20 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-formulae" ${OUTPUT} "${TMP_DIR}/homebrew-formulae"; then
 			echo -e "\033[32mDONE\033[0m"
 
+			# Download cask list if brew-cask is installed.
+			INSTALL_CASKS="no"
+			if command -v brew-cask &>/dev/null; then
+				printf "Downloading Homebrew cask list... "
+				if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-casks" ${OUTPUT} "${TMP_DIR}/homebrew-casks"; then
+					echo -e "\033[32mDONE\033[0m"
+					INSTALL_CASKS="yes"
+				else
+					echo -e "\033[31mFAILED\033[0m"
+				fi
+			fi
+
 			# Check for missing formulae.
 			brew list > "${TMP_DIR}/homebrew-installed"
-			if command -v brew-cask &>/dev/null; then
-				brew cask list >> "${TMP_DIR}/homebrew-installed"
-			fi
 			FORMULAE_TO_INSTALL=()
 			for FORMULA in $(cat "${TMP_DIR}/homebrew-formulae"); do
 				LAST_PART=$(echo "${FORMULA}" | grep -o "[^/]*$")
@@ -179,10 +188,29 @@ if [ "${PLATFORM}" = "OS X" ]; then
 					FORMULAE_TO_INSTALL+=("${FORMULA}")
 				fi
 			done
+
+			# Check for missing casks.
+			CASKS_TO_INSTALL=()
+			if [ "${INSTALL_CASKS}" = "yes" ]; then
+				brew cask list > "${TMP_DIR}/homebrew-casks-installed"
+				for CASK in $(cat "${TMP_DIR}/homebrew-casks"); do
+					LAST_PART=$(echo "${CASK}" | grep -o "[^/]*$")
+					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-casks-installed"; then
+						echo -e "${LAST_PART} is not installed."
+						CASKS_TO_INSTALL+=("${CASK}")
+					fi
+				done
+			fi
+
 			if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
 				echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[@]}\033[0m."
 			else
 				echo "All formulae installed."
+			fi
+			if [ ${#CASKS_TO_INSTALL[@]} -gt 0 ]; then
+				echo -e "You can install the missing casks with \033[36;1mbrew cask install ${CASKS_TO_INSTALL[@]}\033[0m."
+			else
+				echo "All casks installed."
 			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"

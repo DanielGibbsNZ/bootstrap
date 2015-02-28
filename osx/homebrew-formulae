@@ -38,6 +38,6 @@ vim
 wakeonlan
 wget
 wireshark
+caskroom/cask/brew-cask
 homebrew/dupes/nano
 homebrew/binary/jad
-Caskroom/cask/xquartz
