@@ -144,6 +144,20 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		fi
 	done
 
+	# Set defaults for operating system and applications.
+	echo
+	echo -e "\033[37m===>\033[0m DEFAULTS \033[37m<===\033[0m"
+	printf "Downloading defaults... "
+	if ${DOWNLOAD} "${FILE_LOCATION}/osx/defaults" ${OUTPUT} "${TMP_DIR}/defaults"; then
+		echo -e "\033[32mDONE\033[0m"
+		printf "Setting defaults... "
+		bash "${TMP_DIR}/defaults"
+		echo -e "\033[32mDONE\033[0m"
+		echo "If this is the first time you're setting these defaults, you may need to restart your computer."
+	else
+		echo -e "\033[31mFAILED\033[0m"
+	fi
+
 	# Check Homebrew status.
 	echo
 	echo -e "\033[37m===>\033[0m HOMEBREW \033[37m<===\033[0m"
