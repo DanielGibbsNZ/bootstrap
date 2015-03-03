@@ -207,10 +207,12 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			else
 				echo "All formulae installed."
 			fi
-			if [ ${#CASKS_TO_INSTALL[@]} -gt 0 ]; then
-				echo -e "You can install the missing casks with \033[36;1mbrew cask install ${CASKS_TO_INSTALL[@]}\033[0m."
-			else
-				echo "All casks installed."
+			if [ "${INSTALL_CASKS}" = "yes" ]; then
+				if [ ${#CASKS_TO_INSTALL[@]} -gt 0 ]; then
+					echo -e "You can install the missing casks with \033[36;1mbrew cask install ${CASKS_TO_INSTALL[@]}\033[0m."
+				else
+					echo "All casks installed."
+				fi
 			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"
