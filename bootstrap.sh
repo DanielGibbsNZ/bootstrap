@@ -158,6 +158,31 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		echo -e "\033[31mFAILED\033[0m"
 	fi
 
+	# Download and install fonts.
+	echo
+	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
+	printf "Downloading font list... "
+	if ${DOWNLOAD} "${FILE_LOCATION}/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
+		echo -e "\033[32mDONE\033[0m"
+		FONT_DIR="${HOME}/Library/Fonts"
+		while read FONT; do
+			FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
+			FONT_URL=$(echo "${FONT}" | cut -d, -f2)
+			FONT_FILE=$(echo "${FONT_URL}" | grep -o "[^/]*$")
+			if [ ! -f "${FONT_DIR}/${FONT_FILE}" ]; then
+				printf "Downloading ${FONT_NAME}... "
+				if ${DOWNLOAD} "${FONT_URL}" ${OUTPUT} "${FONT_DIR}/${FONT_FILE}"; then
+					echo -e "\033[32mDONE\033[0m"
+				else
+					echo -e "\033[31mFAILED\033[0m"
+				fi
+			fi
+		done < "${TMP_DIR}/fonts"
+	else
+		echo -e "\033[31mFAILED\033[0m"
+	fi
+
+
 	# Check Homebrew status.
 	echo
 	echo -e "\033[37m===>\033[0m HOMEBREW \033[37m<===\033[0m"
