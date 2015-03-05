@@ -165,6 +165,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 	if ${DOWNLOAD} "${FILE_LOCATION}/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
 		echo -e "\033[32mDONE\033[0m"
 		FONT_DIR="${HOME}/Library/Fonts"
+		ALL_FONTS_INSTALLED="yes"
 		while read FONT; do
 			FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
 			FONT_URL=$(echo "${FONT}" | cut -d, -f2)
@@ -175,9 +176,13 @@ if [ "${PLATFORM}" = "OS X" ]; then
 					echo -e "\033[32mDONE\033[0m"
 				else
 					echo -e "\033[31mFAILED\033[0m"
+					ALL_FONTS_INSTALLED="no"
 				fi
 			fi
 		done < "${TMP_DIR}/fonts"
+		if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
+			echo "All fonts installed."
+		fi
 	else
 		echo -e "\033[31mFAILED\033[0m"
 	fi
