@@ -41,16 +41,6 @@ function install_file {
 	fi
 }
 
-# Process arguments.
-if [ "$1" = "-d" -o "$1" = "--dest" ]; then
-	if [ "$2" -a -d "$2" ]; then
-		INSTALL_LOCATION="$2"
-	else
-		echo "Invalid destination: $2"
-		exit 1
-	fi
-fi
-
 # Detect operating system (not exhaustive).
 if [ "$(uname -s)" == "Darwin" ]; then
 	PLATFORM="OS X"
