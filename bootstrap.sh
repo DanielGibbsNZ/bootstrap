@@ -466,6 +466,3 @@ else
 	fi
 	echo -e "Once installed, don't forget to rerun this script."
 fi
-
-# Tidy up.
-rm -rf "${TMP_DIR}"
