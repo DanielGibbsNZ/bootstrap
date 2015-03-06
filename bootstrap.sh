@@ -208,7 +208,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			fi
 
 			# Check for missing formulae.
-			brew list > "${TMP_DIR}/homebrew-installed"
+			brew list > "${TMP_DIR}/homebrew-installed" 2>/dev/null
 			FORMULAE_TO_INSTALL=()
 			for FORMULA in $(cat "${TMP_DIR}/homebrew-formulae"); do
 				LAST_PART=$(echo "${FORMULA}" | grep -o "[^/]*$")
@@ -221,7 +221,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			# Check for missing casks.
 			CASKS_TO_INSTALL=()
 			if [ "${INSTALL_CASKS}" = "yes" ]; then
-				brew cask list > "${TMP_DIR}/homebrew-casks-installed"
+				brew cask list > "${TMP_DIR}/homebrew-casks-installed" 2>/dev/null
 				for CASK in $(cat "${TMP_DIR}/homebrew-casks"); do
 					LAST_PART=$(echo "${CASK}" | grep -o "[^/]*$")
 					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-casks-installed"; then
