@@ -158,23 +158,35 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		echo -e "\033[31mFAILED\033[0m"
 	fi
 
-	# Download and install terminal profile "Dark" if it doesn't exist, and use this by default.
+	# Sets the terminal profile for the fonts installed.
 	TERMINAL_PLIST="${HOME}/Library/Preferences/com.apple.Terminal.plist"
+	function set_terminal_profile {
+		if /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
+			if [ -f "${HOME}/Library/Fonts/DroidSansMono.ttf" ]; then
+				TERMINAL_PROFILE="Dark"
+			else
+				TERMINAL_PROFILE="Dark (Monaco)"
+			fi
+			defaults write com.apple.Terminal "Startup Window Settings" -string "${TERMINAL_PROFILE}"
+			defaults write com.apple.Terminal "Default Window Settings" -string "${TERMINAL_PROFILE}"
+		fi
+	}
+
+	# Download and install terminal profile "Dark" if it doesn't exist, and use this by default.
+	# The terminal profile "Dark (Monaco)" is also installed, to be used if the font "Droid Sans Mono" isn't installed.
 	if ! /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
 		printf "Downloading terminal profile... "
-		cp osx/terminal_profile.plist "${TMP_DIR}/terminal_profile.plist"
 		if ${DOWNLOAD} "${FILE_LOCATION}/osx/terminal_profile.plist" ${OUTPUT} "${TMP_DIR}/terminal_profile.plist"; then
 			echo -e "\033[32mDONE\033[0m"
 			printf "Installing terminal profile... "
 			/usr/libexec/PlistBuddy -c "Merge ${TMP_DIR}/terminal_profile.plist Window\ Settings" "${TERMINAL_PLIST}" &>/dev/null
-			defaults write com.apple.Terminal "Startup Window Settings" -string "Dark"
-			defaults write com.apple.Terminal "Default Window Settings" -string "Dark"
 			echo -e "\033[32mDONE\033[0m"
 			echo "You will have to restart Terminal for the new profile to take effect."
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
 	fi
+	set_terminal_profile
 
 	# Download and install fonts.
 	echo
@@ -201,6 +213,8 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
 			echo "All fonts installed."
 		fi
+		# Set terminal profile again.
+		set_terminal_profile
 	else
 		echo -e "\033[31mFAILED\033[0m"
 	fi
