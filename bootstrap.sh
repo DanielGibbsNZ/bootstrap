@@ -158,6 +158,24 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		echo -e "\033[31mFAILED\033[0m"
 	fi
 
+	# Download and install terminal profile "Dark" if it doesn't exist, and use this by default.
+	TERMINAL_PLIST="${HOME}/Library/Preferences/com.apple.Terminal.plist"
+	if ! /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
+		printf "Downloading terminal profile... "
+		cp osx/terminal_profile.plist "${TMP_DIR}/terminal_profile.plist"
+		if ${DOWNLOAD} "${FILE_LOCATION}/osx/terminal_profile.plist" ${OUTPUT} "${TMP_DIR}/terminal_profile.plist"; then
+			echo -e "\033[32mDONE\033[0m"
+			printf "Installing terminal profile... "
+			/usr/libexec/PlistBuddy -c "Merge ${TMP_DIR}/terminal_profile.plist Window\ Settings" "${TERMINAL_PLIST}" &>/dev/null
+			defaults write com.apple.Terminal "Startup Window Settings" -string "Dark"
+			defaults write com.apple.Terminal "Default Window Settings" -string "Dark"
+			echo -e "\033[32mDONE\033[0m"
+			echo "You will have to restart Terminal for the new profile to take effect."
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+	fi
+
 	# Download and install fonts.
 	echo
 	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"

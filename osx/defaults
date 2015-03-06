@@ -486,29 +486,6 @@ defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
 # Only use UTF-8 in Terminal.
 defaults write com.apple.terminal StringEncodings -array 4
 
-# Create new terminal profile named "Pro 2.0" if there isn't one, and use this by default.
-pathToTerminalPrefs="${HOME}/Library/Preferences/com.apple.Terminal.plist"
-if ! /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Pro\ 2.0" "${pathToTerminalPrefs}" &>/dev/null; then
-	/usr/libexec/PlistBuddy -c "Copy :Window\ Settings:Pro :Window\ Settings:Pro\ 2.0" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Set :Window\ Settings:Pro\ 2.0:name Pro\ 2.0" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Set :Window\ Settings:Pro\ 2.0:shellExitAction 1" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:UseBoldFonts integer 0" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:UseBrightBold integer 1" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:Bell integer 0" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:VisualBell integer 0" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:ShowTTYNameInTitle integer 1" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Set :Window\ Settings:Pro\ 2.0:ShowWindowSettingsNameInTitle 0" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:useOptionAsMetaKey integer 1" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:columnCount integer 128" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:rowCount integer 32" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Set :Window\ Settings:Pro\ 2.0:FontAntialias 1" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Add :Window\ Settings:Pro\ 2.0:Linewrap integer 1" "${pathToTerminalPrefs}"
-	/usr/libexec/PlistBuddy -c "Set :Window\ Settings:Pro\ 2.0:BackgroundBlur 0.05" "${pathToTerminalPrefs}"
-	echo -e "Terminal profile \033[36;1mPro 2.0\033[0m installed. Remember to adjust the font and font size."
-fi
-defaults write com.apple.Terminal "Startup Window Settings" -string "Pro 2.0"
-defaults write com.apple.Terminal "Default Window Settings" -string "Pro 2.0"
-
 # New tabs open with home as the working directory.
 defaults write com.apple.Terminal NewTabWorkingDirectoryBehavior -int 1
 
