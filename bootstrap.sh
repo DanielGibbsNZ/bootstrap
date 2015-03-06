@@ -93,7 +93,7 @@ trap "rm -rf ${TMP_DIR}; exit 0" EXIT SIGINT SIGKILL SIGTERM
 echo -e "\033[37m===>\033[0m CONFIG FILES \033[37m<===\033[0m"
 for FILE in "${RC_FILES[@]}"; do
 	printf "Downloading ${FILE}... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/${FILE}" ${OUTPUT} "${TMP_DIR}/${FILE}"; then
+	if ${DOWNLOAD} "${FILE_LOCATION}/all/${FILE}" ${OUTPUT} "${TMP_DIR}/${FILE}"; then
 		echo -e "\033[32mDONE\033[0m"
 	else
 		echo -e "\033[31mFAILED\033[0m"
@@ -162,7 +162,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 	echo
 	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
 	printf "Downloading font list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
+	if ${DOWNLOAD} "${FILE_LOCATION}/all/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
 		echo -e "\033[32mDONE\033[0m"
 		FONT_DIR="${HOME}/Library/Fonts"
 		ALL_FONTS_INSTALLED="yes"
@@ -317,7 +317,7 @@ if [ "${PLATFORM}" = "Windows" ]; then
 	echo
 	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
 	printf "Downloading font list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
+	if ${DOWNLOAD} "${FILE_LOCATION}/all/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
 		echo -e "\033[32mDONE\033[0m"
 		FONT_DIR=$(cygpath -w "${TMP_DIR}")
 		FONT_REG_PATH="HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
@@ -359,7 +359,7 @@ if command -v python &>/dev/null && command -v pip &>/dev/null; then
 		PIP="pip"
 	fi
 	printf "Downloading pip formula list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/pip-packages" ${OUTPUT} "${TMP_DIR}/pip-packages"; then
+	if ${DOWNLOAD} "${FILE_LOCATION}/all/pip-packages" ${OUTPUT} "${TMP_DIR}/pip-packages"; then
 		echo -e "\033[32mDONE\033[0m"
 
 		# Check for missing packages.
@@ -403,7 +403,7 @@ if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
 		PIP="pip3"
 	fi
 	printf "Downloading pip3 formula list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/pip3-packages" ${OUTPUT} "${TMP_DIR}/pip3-packages"; then
+	if ${DOWNLOAD} "${FILE_LOCATION}/all/pip3-packages" ${OUTPUT} "${TMP_DIR}/pip3-packages"; then
 		echo -e "\033[32mDONE\033[0m"
 
 		# Check for missing packages.
