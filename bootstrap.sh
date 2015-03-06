@@ -187,7 +187,6 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		echo -e "\033[31mFAILED\033[0m"
 	fi
 
-
 	# Check Homebrew status.
 	echo
 	echo -e "\033[37m===>\033[0m HOMEBREW \033[37m<===\033[0m"
@@ -312,6 +311,39 @@ if [ "${PLATFORM}" = "Windows" ]; then
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
+	fi
+
+	# Download and install fonts.
+	echo
+	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
+	printf "Downloading font list... "
+	if ${DOWNLOAD} "${FILE_LOCATION}/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
+		echo -e "\033[32mDONE\033[0m"
+		FONT_DIR=$(cygpath -w "${TMP_DIR}")
+		FONT_REG_PATH="HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
+		ALL_FONTS_INSTALLED="yes"
+		while read FONT; do
+			FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
+			FONT_URL=$(echo "${FONT}" | cut -d, -f2)
+			FONT_FILE=$(echo "${FONT_URL}" | grep -o "[^/]*$")
+			FONT_REG_KEY="${FONT_NAME} (TrueType)"
+			if ! reg query "${FONT_REG_PATH}" /v "${FONT_REG_KEY}" &>/dev/null; then
+				printf "Downloading ${FONT_NAME}... "
+				if ${DOWNLOAD} "${FONT_URL}" ${OUTPUT} "${TMP_DIR}/${FONT_FILE}"; then
+					echo "CreateObject(\"Shell.Application\").Namespace(\"${FONT_DIR}\").ParseName(\"${FONT_FILE}\").InvokeVerb(\"Install\")" > "${TMP_DIR}/${FONT_FILE}.vbs"
+					cscript $(cygpath -w "${TMP_DIR}/${FONT_FILE}.vbs") &>/dev/null
+					echo -e "\033[32mDONE\033[0m"
+				else
+					echo -e "\033[31mFAILED\033[0m"
+					ALL_FONTS_INSTALLED="no"
+				fi
+			fi
+		done < "${TMP_DIR}/fonts"
+		if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
+			echo "All fonts installed."
+		fi
+	else
+		echo -e "\033[31mFAILED\033[0m"
 	fi
 fi
 
