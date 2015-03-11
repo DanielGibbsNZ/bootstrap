@@ -435,7 +435,7 @@ defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
 defaults write com.apple.AddressBook ABDefaultAddressCountryCode -string "nz"
 
 # Display names as "First Name, Last Name".
-defaults write com.apple.AddressBook ABNameDisplay -int 1
+defaults write com.apple.AddressBook ABNameDisplay -int 0
 
 # Sort by first name, last name.
 defaults write com.apple.AddressBook ABNameSortingFormat -string "sortingFirstName sortingLastName"
