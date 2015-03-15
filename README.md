@@ -8,4 +8,9 @@ It can be run by downloading and executing the bootstrap script (`bootstrap.sh`)
 	wget https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master/bootstrap.sh
 	bash bootstrap.sh && rm bootstrap.sh
 
-The command line options, including those for executing or skipping specific sections can be shown by running `bootstrap.sh --help`.
+Alternately, if Wget is not available you can use cURL to download bootstrap:
+
+	curl -fsL https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master/bootstrap.sh -o bootstrap.sh
+	bash bootstrap.sh && rm bootstrap.sh
+
+The command line options, including those for executing or skipping specific sections can be shown by running bootstrap with `--help`.
