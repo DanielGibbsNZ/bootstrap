@@ -7,3 +7,5 @@ It can be run by downloading and executing the bootstrap script (`bootstrap.sh`)
 
 	wget https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master/bootstrap.sh
 	bash bootstrap.sh && rm bootstrap.sh
+
+The command line options, including those for executing or skipping specific sections can be shown by running `bootstrap.sh --help`.

@@ -2,11 +2,32 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-
+ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "pip3")
+SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
 NANORC_LOCATIONS=("/usr/share/nano" "/usr/local/share/nano")
 RC_FILES=(".bashrc" ".vimrc" ".nanorc" ".gitconfig")
+
+# Function to check if a section is valid.
+function valid_section {
+	for _SECTION in "${ALL_SECTIONS[@]}"; do
+		if [ "$1" = "${_SECTION}" ]; then
+			return 0 # True.
+		fi
+	done
+	return 1 # False.
+}
+
+# Function to check if a section should be executed.
+function do_section {
+	for _SECTION in "${SECTIONS[@]}"; do
+		if [ "$1" = "${_SECTION}" ]; then
+			return 0 # True.
+		fi
+	done
+	return 1 # False.
+}
 
 # File installation function.
 function install_file {
@@ -71,6 +92,84 @@ else
 	DIFF="diff"
 fi
 
+# Process arguments.
+SKIPPED_SECTIONS=()
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--skip=*)
+			ARGS=$(echo "$1" | tail -c +8)
+			set -- "--skip" "${ARGS}" "${@:2}"
+			continue
+			;;
+		-s|--skip)
+			if [ -z "$2" ]; then
+				echo "$1 requires an argument."
+				exit 1
+			fi
+			for SECTION in ${2//,/ }; do
+				if valid_section "${SECTION}"; then
+					SKIPPED_SECTIONS+=("${SECTION}")
+				else
+					echo "Invalid section: ${SECTION}"
+					exit 1
+				fi
+			done
+			shift
+			;;
+		-h|--help)
+			echo "Usage $0 [options] [section1 section2...]"
+			echo
+			echo "Sets up a computer for my use. If a list of sections is given, only those"
+			echo "sections will be executed. Otherwise all sections will be executed. If any"
+			echo "sections are skipped they will not be executed."
+			echo
+			echo "Options:"
+			echo "  -h/--help                      Display this help message."
+			echo "  -s/--skip section1,section2... Skip the given sections."
+			echo
+			echo "Sections:"
+			echo "  ${ALL_SECTIONS[@]}"
+			echo
+			exit 0
+			;;
+		-*)
+			echo "Unknown option: $1"
+			exit 1
+			;;
+		*)
+			# This allows sections separated by spaces or commas.
+			for SECTION in ${1//,/ }; do
+				if valid_section "${SECTION}"; then
+					SECTIONS+=("${SECTION}")
+				else
+					echo "Invalid section: ${SECTION}"
+					exit 1
+				fi
+			done
+			;;
+	esac
+	shift
+done
+if [ "${#SECTIONS[@]}" -eq 0 ]; then
+	SECTIONS=("${ALL_SECTIONS[@]}")
+fi
+for SECTION in "${SKIPPED_SECTIONS[@]}"; do
+	for I in "${!SECTIONS[@]}"; do
+		if [ "${SECTION}" = "${SECTIONS[${I}]}" ]; then
+			unset SECTIONS[${I}]
+		fi
+	done
+done
+
+# Output general information about bootstrap.
+echo -e "\033[37m>>>>\033[0m BOOTSTRAP \033[37m<<<<\033[0m"
+if [ "${#SECTIONS[@]}" -gt 0 ]; then
+	echo "Sections: ${SECTIONS[@]}"
+else
+	echo "No sections will be executed."
+	exit 0
+fi
+
 # Create temporary directory.
 TMP_DIR="$(mktemp -dq /tmp/bootstrap.XXXXXX)"
 if [ $? -ne 0 ]; then
@@ -79,380 +178,407 @@ if [ $? -ne 0 ]; then
 fi
 trap "rm -rf ${TMP_DIR}; exit 0" EXIT SIGINT SIGKILL SIGTERM
 
-# Download and install RC files.
-echo -e "\033[37m===>\033[0m CONFIG FILES \033[37m<===\033[0m"
-for FILE in "${RC_FILES[@]}"; do
-	printf "Downloading ${FILE}... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/all/${FILE}" ${OUTPUT} "${TMP_DIR}/${FILE}"; then
-		echo -e "\033[32mDONE\033[0m"
-	else
-		echo -e "\033[31mFAILED\033[0m"
-		continue
+
+
+if do_section "config"; then
+	# Download and install RC files.
+	echo
+	echo -e "\033[37m===>\033[0m CONFIG FILES \033[37m<===\033[0m"
+	for FILE in "${RC_FILES[@]}"; do
+		printf "Downloading ${FILE}... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/all/${FILE}" ${OUTPUT} "${TMP_DIR}/${FILE}"; then
+			echo -e "\033[32mDONE\033[0m"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+			continue
+		fi
+
+		# Search for nanorc files and add them to .nanorc.
+		if [ "${FILE}" = ".nanorc" ]; then
+			for NANORC_LOCATION in "${NANORC_LOCATIONS[@]}"; do
+				if [ -d "${NANORC_LOCATION}" ]; then
+					echo >> "${TMP_DIR}/${FILE}"
+					for NANORC_FILE in $(ls "${NANORC_LOCATION}"/*.nanorc 2>/dev/null); do
+						echo "include ${NANORC_FILE}" >> "${TMP_DIR}/${FILE}"
+					done
+				fi
+			done
+		fi
+
+		install_file "${FILE}" "${INSTALL_LOCATION}"
+	done
+fi
+
+# OS X specific setup.
+if [ "${PLATFORM}" = "OS X" ]; then
+	if do_section "config"; then
+		# Download and install .profile.
+		printf "Downloading .profile... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/osx/.profile" ${OUTPUT} "${TMP_DIR}/.profile"; then
+			echo -e "\033[32mDONE\033[0m"
+			install_file ".profile" "${INSTALL_LOCATION}"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
 	fi
 
-	# Search for nanorc files and add them to .nanorc.
-	if [ "${FILE}" = ".nanorc" ]; then
-		for NANORC_LOCATION in "${NANORC_LOCATIONS[@]}"; do
-			if [ -d "${NANORC_LOCATION}" ]; then
-				echo "" >> "${TMP_DIR}/${FILE}"
-				for NANORC_FILE in $(ls "${NANORC_LOCATION}"/*.nanorc 2>/dev/null); do
-					echo "include ${NANORC_FILE}" >> "${TMP_DIR}/${FILE}"
-				done
+	if do_section "scripts"; then
+		# Download and install scripts.
+		echo
+		echo -e "\033[37m===>\033[0m SCRIPTS \033[37m<===\033[0m"
+		OSX_SCRIPTS=("delxattr")
+		if [ ! -d "${INSTALL_LOCATION}/Scripts" ]; then
+			mkdir -p "${INSTALL_LOCATION}/Scripts"
+		fi
+		for SCRIPT in "${OSX_SCRIPTS[@]}"; do
+			printf "Downloading ${SCRIPT}... "
+			if ${DOWNLOAD} "${FILE_LOCATION}/osx/${SCRIPT}" ${OUTPUT} "${TMP_DIR}/${SCRIPT}"; then
+				echo -e "\033[32mDONE\033[0m"
+				chmod +x "${TMP_DIR}/${SCRIPT}"
+				install_file "${SCRIPT}" "${INSTALL_LOCATION}/Scripts"
+			else
+				echo -e "\033[31mFAILED\033[0m"
 			fi
 		done
 	fi
 
-	install_file "${FILE}" "${INSTALL_LOCATION}"
-done
-
-# OS X specific setup.
-if [ "${PLATFORM}" = "OS X" ]; then
-	# Download and install .profile.
-	printf "Downloading .profile... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/osx/.profile" ${OUTPUT} "${TMP_DIR}/.profile"; then
-		echo -e "\033[32mDONE\033[0m"
-		install_file ".profile" "${INSTALL_LOCATION}"
-	else
-		echo -e "\033[31mFAILED\033[0m"
-	fi
-
-	# Download and install scripts.
-	echo
-	echo -e "\033[37m===>\033[0m SCRIPTS \033[37m<===\033[0m"
-	OSX_SCRIPTS=("delxattr")
-	if [ ! -d "${INSTALL_LOCATION}/Scripts" ]; then
-		mkdir -p "${INSTALL_LOCATION}/Scripts"
-	fi
-	for SCRIPT in "${OSX_SCRIPTS[@]}"; do
-		printf "Downloading ${SCRIPT}... "
-		if ${DOWNLOAD} "${FILE_LOCATION}/osx/${SCRIPT}" ${OUTPUT} "${TMP_DIR}/${SCRIPT}"; then
+	if do_section "defaults"; then
+		# Set defaults for operating system and applications.
+		echo
+		echo -e "\033[37m===>\033[0m DEFAULTS \033[37m<===\033[0m"
+		printf "Downloading defaults... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/osx/defaults" ${OUTPUT} "${TMP_DIR}/defaults"; then
 			echo -e "\033[32mDONE\033[0m"
-			chmod +x "${TMP_DIR}/${SCRIPT}"
-			install_file "${SCRIPT}" "${INSTALL_LOCATION}/Scripts"
+			printf "Setting defaults... "
+			bash "${TMP_DIR}/defaults"
+			echo -e "\033[32mDONE\033[0m"
+			echo "If this is the first time you're setting these defaults, you may need to restart your computer."
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
-	done
 
-	# Set defaults for operating system and applications.
-	echo
-	echo -e "\033[37m===>\033[0m DEFAULTS \033[37m<===\033[0m"
-	printf "Downloading defaults... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/osx/defaults" ${OUTPUT} "${TMP_DIR}/defaults"; then
-		echo -e "\033[32mDONE\033[0m"
-		printf "Setting defaults... "
-		bash "${TMP_DIR}/defaults"
-		echo -e "\033[32mDONE\033[0m"
-		echo "If this is the first time you're setting these defaults, you may need to restart your computer."
-	else
-		echo -e "\033[31mFAILED\033[0m"
-	fi
+		# Sets the terminal profile for the fonts installed.
+		TERMINAL_PLIST="${HOME}/Library/Preferences/com.apple.Terminal.plist"
+		function set_terminal_profile {
+			if /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
+				if [ -f "${HOME}/Library/Fonts/DroidSansMono.ttf" ]; then
+					TERMINAL_PROFILE="Dark"
+				else
+					TERMINAL_PROFILE="Dark (Monaco)"
+				fi
+				defaults write com.apple.Terminal "Startup Window Settings" -string "${TERMINAL_PROFILE}"
+				defaults write com.apple.Terminal "Default Window Settings" -string "${TERMINAL_PROFILE}"
+			fi
+		}
 
-	# Sets the terminal profile for the fonts installed.
-	TERMINAL_PLIST="${HOME}/Library/Preferences/com.apple.Terminal.plist"
-	function set_terminal_profile {
-		if /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
-			if [ -f "${HOME}/Library/Fonts/DroidSansMono.ttf" ]; then
-				TERMINAL_PROFILE="Dark"
+		# Download and install terminal profile "Dark" if it doesn't exist, and use this by default.
+		# The terminal profile "Dark (Monaco)" is also installed, to be used if the font "Droid Sans Mono" isn't installed.
+		if ! /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
+			printf "Downloading terminal profile... "
+			if ${DOWNLOAD} "${FILE_LOCATION}/osx/terminal_profile.plist" ${OUTPUT} "${TMP_DIR}/terminal_profile.plist"; then
+				echo -e "\033[32mDONE\033[0m"
+				printf "Installing terminal profile... "
+				/usr/libexec/PlistBuddy -c "Merge ${TMP_DIR}/terminal_profile.plist Window\ Settings" "${TERMINAL_PLIST}" &>/dev/null
+				echo -e "\033[32mDONE\033[0m"
+				echo "You will have to restart Terminal for the new profile to take effect."
 			else
-				TERMINAL_PROFILE="Dark (Monaco)"
+				echo -e "\033[31mFAILED\033[0m"
 			fi
-			defaults write com.apple.Terminal "Startup Window Settings" -string "${TERMINAL_PROFILE}"
-			defaults write com.apple.Terminal "Default Window Settings" -string "${TERMINAL_PROFILE}"
 		fi
-	}
+		set_terminal_profile
+	fi
 
-	# Download and install terminal profile "Dark" if it doesn't exist, and use this by default.
-	# The terminal profile "Dark (Monaco)" is also installed, to be used if the font "Droid Sans Mono" isn't installed.
-	if ! /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
-		printf "Downloading terminal profile... "
-		if ${DOWNLOAD} "${FILE_LOCATION}/osx/terminal_profile.plist" ${OUTPUT} "${TMP_DIR}/terminal_profile.plist"; then
+	if do_section "fonts"; then
+		# Download and install fonts.
+		echo
+		echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
+		printf "Downloading font list... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/all/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
 			echo -e "\033[32mDONE\033[0m"
-			printf "Installing terminal profile... "
-			/usr/libexec/PlistBuddy -c "Merge ${TMP_DIR}/terminal_profile.plist Window\ Settings" "${TERMINAL_PLIST}" &>/dev/null
-			echo -e "\033[32mDONE\033[0m"
-			echo "You will have to restart Terminal for the new profile to take effect."
+			FONT_DIR="${HOME}/Library/Fonts"
+			ALL_FONTS_INSTALLED="yes"
+			while read FONT; do
+				FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
+				FONT_URL=$(echo "${FONT}" | cut -d, -f2)
+				FONT_FILE=$(echo "${FONT_URL}" | grep -o "[^/]*$")
+				if [ ! -f "${FONT_DIR}/${FONT_FILE}" ]; then
+					printf "Downloading ${FONT_NAME}... "
+					if ${DOWNLOAD} "${FONT_URL}" ${OUTPUT} "${FONT_DIR}/${FONT_FILE}"; then
+						echo -e "\033[32mDONE\033[0m"
+					else
+						echo -e "\033[31mFAILED\033[0m"
+						ALL_FONTS_INSTALLED="no"
+					fi
+				fi
+			done < "${TMP_DIR}/fonts"
+			if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
+				echo "All fonts installed."
+			fi
+			# Set terminal profile again.
+			if do_section "defaults"; then
+				set_terminal_profile
+			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
 	fi
-	set_terminal_profile
 
-	# Download and install fonts.
-	echo
-	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
-	printf "Downloading font list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/all/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
-		echo -e "\033[32mDONE\033[0m"
-		FONT_DIR="${HOME}/Library/Fonts"
-		ALL_FONTS_INSTALLED="yes"
-		while read FONT; do
-			FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
-			FONT_URL=$(echo "${FONT}" | cut -d, -f2)
-			FONT_FILE=$(echo "${FONT_URL}" | grep -o "[^/]*$")
-			if [ ! -f "${FONT_DIR}/${FONT_FILE}" ]; then
-				printf "Downloading ${FONT_NAME}... "
-				if ${DOWNLOAD} "${FONT_URL}" ${OUTPUT} "${FONT_DIR}/${FONT_FILE}"; then
-					echo -e "\033[32mDONE\033[0m"
-				else
-					echo -e "\033[31mFAILED\033[0m"
-					ALL_FONTS_INSTALLED="no"
+	if do_section "homebrew"; then
+		# Check Homebrew status.
+		echo
+		echo -e "\033[37m===>\033[0m HOMEBREW \033[37m<===\033[0m"
+		if command -v brew &>/dev/null; then
+			printf "Downloading Homebrew formula list... "
+			if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-formulae" ${OUTPUT} "${TMP_DIR}/homebrew-formulae"; then
+				echo -e "\033[32mDONE\033[0m"
+
+				# Download cask list if brew-cask is installed.
+				INSTALL_CASKS="no"
+				if command -v brew-cask &>/dev/null; then
+					printf "Downloading Homebrew cask list... "
+					if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-casks" ${OUTPUT} "${TMP_DIR}/homebrew-casks"; then
+						echo -e "\033[32mDONE\033[0m"
+						INSTALL_CASKS="yes"
+					else
+						echo -e "\033[31mFAILED\033[0m"
+					fi
 				fi
-			fi
-		done < "${TMP_DIR}/fonts"
-		if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
-			echo "All fonts installed."
-		fi
-		# Set terminal profile again.
-		set_terminal_profile
-	else
-		echo -e "\033[31mFAILED\033[0m"
-	fi
 
-	# Check Homebrew status.
-	echo
-	echo -e "\033[37m===>\033[0m HOMEBREW \033[37m<===\033[0m"
-	if command -v brew &>/dev/null; then
-		printf "Downloading Homebrew formula list... "
-		if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-formulae" ${OUTPUT} "${TMP_DIR}/homebrew-formulae"; then
-			echo -e "\033[32mDONE\033[0m"
-
-			# Download cask list if brew-cask is installed.
-			INSTALL_CASKS="no"
-			if command -v brew-cask &>/dev/null; then
-				printf "Downloading Homebrew cask list... "
-				if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-casks" ${OUTPUT} "${TMP_DIR}/homebrew-casks"; then
-					echo -e "\033[32mDONE\033[0m"
-					INSTALL_CASKS="yes"
-				else
-					echo -e "\033[31mFAILED\033[0m"
-				fi
-			fi
-
-			# Check for missing formulae.
-			brew list > "${TMP_DIR}/homebrew-installed" 2>/dev/null
-			FORMULAE_TO_INSTALL=()
-			for FORMULA in $(cat "${TMP_DIR}/homebrew-formulae"); do
-				LAST_PART=$(echo "${FORMULA}" | grep -o "[^/]*$")
-				if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-installed"; then
-					echo -e "${LAST_PART} is not installed."
-					FORMULAE_TO_INSTALL+=("${FORMULA}")
-				fi
-			done
-
-			# Check for missing casks.
-			CASKS_TO_INSTALL=()
-			if [ "${INSTALL_CASKS}" = "yes" ]; then
-				brew cask list > "${TMP_DIR}/homebrew-casks-installed" 2>/dev/null
-				for CASK in $(cat "${TMP_DIR}/homebrew-casks"); do
-					LAST_PART=$(echo "${CASK}" | grep -o "[^/]*$")
-					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-casks-installed"; then
+				# Check for missing formulae.
+				brew list > "${TMP_DIR}/homebrew-installed" 2>/dev/null
+				FORMULAE_TO_INSTALL=()
+				for FORMULA in $(cat "${TMP_DIR}/homebrew-formulae"); do
+					LAST_PART=$(echo "${FORMULA}" | grep -o "[^/]*$")
+					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-installed"; then
 						echo -e "${LAST_PART} is not installed."
-						CASKS_TO_INSTALL+=("${CASK}")
+						FORMULAE_TO_INSTALL+=("${FORMULA}")
 					fi
 				done
-			fi
 
-			if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
-				echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[@]}\033[0m."
-			else
-				echo "All formulae installed."
-			fi
-			if [ "${INSTALL_CASKS}" = "yes" ]; then
-				if [ ${#CASKS_TO_INSTALL[@]} -gt 0 ]; then
-					echo -e "You can install the missing casks with \033[36;1mbrew cask install ${CASKS_TO_INSTALL[@]}\033[0m."
-				else
-					echo "All casks installed."
+				# Check for missing casks.
+				CASKS_TO_INSTALL=()
+				if [ "${INSTALL_CASKS}" = "yes" ]; then
+					brew cask list > "${TMP_DIR}/homebrew-casks-installed" 2>/dev/null
+					for CASK in $(cat "${TMP_DIR}/homebrew-casks"); do
+						LAST_PART=$(echo "${CASK}" | grep -o "[^/]*$")
+						if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-casks-installed"; then
+							echo -e "${LAST_PART} is not installed."
+							CASKS_TO_INSTALL+=("${CASK}")
+						fi
+					done
 				fi
+
+				if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
+					echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[@]}\033[0m."
+				else
+					echo "All formulae installed."
+				fi
+				if [ "${INSTALL_CASKS}" = "yes" ]; then
+					if [ ${#CASKS_TO_INSTALL[@]} -gt 0 ]; then
+						echo -e "You can install the missing casks with \033[36;1mbrew cask install ${CASKS_TO_INSTALL[@]}\033[0m."
+					else
+						echo "All casks installed."
+					fi
+				fi
+			else
+				echo -e "\033[31mFAILED\033[0m"
 			fi
+			echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
 		else
-			echo -e "\033[31mFAILED\033[0m"
+			echo "Homebrew is not installed; you can install it with the following command."
+			echo -e "\033[36;1mruby -e \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"\033[0m"
+			echo -e "Once installed, don't forget to run \033[36;1mbrew doctor\033[0m and rerun this script."
 		fi
-		echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
-	else
-		echo "Homebrew is not installed; you can install it with the following command."
-		echo -e "\033[36;1mruby -e \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"\033[0m"
-		echo -e "Once installed, don't forget to run \033[36;1mbrew doctor\033[0m and rerun this script."
 	fi
 fi
 
 # Linux specific setup.
 if [ "${PLATFORM}" = "Linux" ]; then
-	# Check Aptitude status.
-	echo
-	echo -e "\033[37m===>\033[0m PACKAGES \033[37m<===\033[0m"
-	if command -v apt-get &>/dev/null; then
-		if [ ! -w "/var/lib/dpkg" ]; then
-			APT_GET="sudo apt-get"
+	if do_section "packages"; then
+		# Check Aptitude status.
+		echo
+		echo -e "\033[37m===>\033[0m PACKAGES \033[37m<===\033[0m"
+		if command -v apt-get &>/dev/null; then
+			if [ ! -w "/var/lib/dpkg" ]; then
+				APT_GET="sudo apt-get"
+			else
+				APT_GET="apt-get"
+			fi
+			printf "Downloading Aptitude package list... "
+			if ${DOWNLOAD} "${FILE_LOCATION}/linux/aptitude-packages" ${OUTPUT} "${TMP_DIR}/aptitude-packages"; then
+				echo -e "\033[32mDONE\033[0m"
+
+				# Check for missing packages.
+				dpkg --get-selections | awk '{print $1}' > "${TMP_DIR}/aptitude-installed"
+				PACKAGES_TO_INSTALL=()
+				for PACKAGE in $(cat "${TMP_DIR}/aptitude-packages"); do
+					if ! grep "^${PACKAGE}$" -q "${TMP_DIR}/aptitude-installed"; then
+						echo -e "${PACKAGE} is not installed."
+						PACKAGES_TO_INSTALL+=("${PACKAGE}")
+					fi
+				done
+				if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+					echo -e "You can install the missing packages with \033[36;1m${APT_GET} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+				else
+					echo "All packages installed."
+				fi
+			else
+				echo -e "\033[31mFAILED\033[0m"
+			fi
+			echo -e "Remember to run \033[36;1m${APT_GET} update\033[0m and \033[36;1m${APT_GET} upgrade\033[0m regularly."
 		else
-			APT_GET="apt-get"
+			echo "What package manager are you using?"
 		fi
-		printf "Downloading Aptitude package list... "
-		if ${DOWNLOAD} "${FILE_LOCATION}/linux/aptitude-packages" ${OUTPUT} "${TMP_DIR}/aptitude-packages"; then
+	fi
+fi
+
+# Windows specific setup.
+if [ "${PLATFORM}" = "Windows" ]; then
+	if do_section "config"; then
+		# Download and install .profile.
+		printf "Downloading .profile... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/windows/.profile" ${OUTPUT} "${TMP_DIR}/.profile"; then
+			echo -e "\033[32mDONE\033[0m"
+			install_file ".profile" "${INSTALL_LOCATION}"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+
+		# Download and install git-prompt.sh.
+		if [ ! -f "/etc/bash_completion.d/git-prompt.sh" ]; then
+			printf "Downloading git-prompt.sh... "
+			if ${DOWNLOAD} "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh" ${OUTPUT} "/etc/bash_completion.d/git-prompt.sh"; then
+				echo -e "\033[32mDONE\033[0m"
+			else
+				echo -e "\033[31mFAILED\033[0m"
+			fi
+		fi
+	fi
+
+	if do_section "fonts"; then
+		# Download and install fonts.
+		echo
+		echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
+		printf "Downloading font list... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/all/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
+			echo -e "\033[32mDONE\033[0m"
+			FONT_DIR=$(cygpath -w "${TMP_DIR}")
+			FONT_REG_PATH="HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
+			ALL_FONTS_INSTALLED="yes"
+			while read FONT; do
+				FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
+				FONT_URL=$(echo "${FONT}" | cut -d, -f2)
+				FONT_FILE=$(echo "${FONT_URL}" | grep -o "[^/]*$")
+				FONT_REG_KEY="${FONT_NAME} (TrueType)"
+				if ! reg query "${FONT_REG_PATH}" /v "${FONT_REG_KEY}" &>/dev/null; then
+					printf "Downloading ${FONT_NAME}... "
+					if ${DOWNLOAD} "${FONT_URL}" ${OUTPUT} "${TMP_DIR}/${FONT_FILE}"; then
+						echo "CreateObject(\"Shell.Application\").Namespace(\"${FONT_DIR}\").ParseName(\"${FONT_FILE}\").InvokeVerb(\"Install\")" > "${TMP_DIR}/${FONT_FILE}.vbs"
+						cscript $(cygpath -w "${TMP_DIR}/${FONT_FILE}.vbs") &>/dev/null
+						echo -e "\033[32mDONE\033[0m"
+					else
+						echo -e "\033[31mFAILED\033[0m"
+						ALL_FONTS_INSTALLED="no"
+					fi
+				fi
+			done < "${TMP_DIR}/fonts"
+			if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
+				echo "All fonts installed."
+			fi
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+	fi
+fi
+
+if do_section "pip"; then
+	# Check pip status.
+	echo
+	echo -e "\033[37m===>\033[0m PIP \033[37m<===\033[0m"
+	if command -v python &>/dev/null && command -v pip &>/dev/null; then
+		# This can be used when automatically installing packages.
+		SITE_PACKAGE_DIR="$(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" 2>/dev/null)"
+		if [ ! -w "${SITE_PACKAGE_DIR}" ]; then
+			PIP="sudo pip"
+		else
+			PIP="pip"
+		fi
+		printf "Downloading pip formula list... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/all/pip-packages" ${OUTPUT} "${TMP_DIR}/pip-packages"; then
 			echo -e "\033[32mDONE\033[0m"
 
 			# Check for missing packages.
-			dpkg --get-selections | awk '{print $1}' > "${TMP_DIR}/aptitude-installed"
+			pip freeze > "${TMP_DIR}/pip-installed"
 			PACKAGES_TO_INSTALL=()
-			for PACKAGE in $(cat "${TMP_DIR}/aptitude-packages"); do
-				if ! grep "^${PACKAGE}$" -q "${TMP_DIR}/aptitude-installed"; then
+			for PACKAGE in $(cat "${TMP_DIR}/pip-packages"); do
+				if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip-installed"; then
 					echo -e "${PACKAGE} is not installed."
 					PACKAGES_TO_INSTALL+=("${PACKAGE}")
 				fi
 			done
 			if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-				echo -e "You can install the missing packages with \033[36;1m${APT_GET} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+				echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 			else
 				echo "All packages installed."
 			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
-		echo -e "Remember to run \033[36;1m${APT_GET} update\033[0m and \033[36;1m${APT_GET} upgrade\033[0m regularly."
+		echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
 	else
-		echo "What package manager are you using?"
+		if [ "${PLATFORM}" = "OS X" ]; then
+			echo "pip is not installed; you can install it by updating your version of Python using Homebrew."
+		elif [ "${PLATFORM}" = "Windows" ]; then
+			echo -e "pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
+		elif [ "${PLATFORM}" = "Linux" ]; then
+			echo -e "pip is not installed; you can install it by installing python-pip."
+		fi
+		echo -e "Once installed, don't forget to rerun this script."
 	fi
 fi
 
-# Windows specific setup.
-if [ "${PLATFORM}" = "Windows" ]; then
-	# Download and install .profile.
-	printf "Downloading .profile... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/windows/.profile" ${OUTPUT} "${TMP_DIR}/.profile"; then
-		echo -e "\033[32mDONE\033[0m"
-		install_file ".profile" "${INSTALL_LOCATION}"
-	else
-		echo -e "\033[31mFAILED\033[0m"
-	fi
-
-	# Download and install git-prompt.sh.
-	if [ ! -f "/etc/bash_completion.d/git-prompt.sh" ]; then
-		printf "Downloading git-prompt.sh... "
-		if ${DOWNLOAD} "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh" ${OUTPUT} "/etc/bash_completion.d/git-prompt.sh"; then
+if do_section "pip3"; then
+	# Check pip3 status.
+	echo
+	echo -e "\033[37m===>\033[0m PIP3 \033[37m<===\033[0m"
+	if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
+		# This can be used when automatically installing packages.
+		SITE_PACKAGE_DIR="$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" 2>/dev/null)"
+		if [ ! -w "${SITE_PACKAGE_DIR}" ]; then
+			PIP="sudo pip3"
+		else
+			PIP="pip3"
+		fi
+		printf "Downloading pip3 formula list... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/all/pip3-packages" ${OUTPUT} "${TMP_DIR}/pip3-packages"; then
 			echo -e "\033[32mDONE\033[0m"
+
+			# Check for missing packages.
+			pip3 freeze > "${TMP_DIR}/pip3-installed"
+			PACKAGES_TO_INSTALL=()
+			for PACKAGE in $(cat "${TMP_DIR}/pip3-packages"); do
+				if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip3-installed"; then
+					echo -e "${PACKAGE} is not installed."
+					PACKAGES_TO_INSTALL+=("${PACKAGE}")
+				fi
+			done
+			if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+				echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
+			else
+				echo "All packages installed."
+			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
-	fi
-
-	# Download and install fonts.
-	echo
-	echo -e "\033[37m===>\033[0m FONTS \033[37m<===\033[0m"
-	printf "Downloading font list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/all/fonts" ${OUTPUT} "${TMP_DIR}/fonts"; then
-		echo -e "\033[32mDONE\033[0m"
-		FONT_DIR=$(cygpath -w "${TMP_DIR}")
-		FONT_REG_PATH="HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
-		ALL_FONTS_INSTALLED="yes"
-		while read FONT; do
-			FONT_NAME=$(echo "${FONT}" | cut -d, -f1)
-			FONT_URL=$(echo "${FONT}" | cut -d, -f2)
-			FONT_FILE=$(echo "${FONT_URL}" | grep -o "[^/]*$")
-			FONT_REG_KEY="${FONT_NAME} (TrueType)"
-			if ! reg query "${FONT_REG_PATH}" /v "${FONT_REG_KEY}" &>/dev/null; then
-				printf "Downloading ${FONT_NAME}... "
-				if ${DOWNLOAD} "${FONT_URL}" ${OUTPUT} "${TMP_DIR}/${FONT_FILE}"; then
-					echo "CreateObject(\"Shell.Application\").Namespace(\"${FONT_DIR}\").ParseName(\"${FONT_FILE}\").InvokeVerb(\"Install\")" > "${TMP_DIR}/${FONT_FILE}.vbs"
-					cscript $(cygpath -w "${TMP_DIR}/${FONT_FILE}.vbs") &>/dev/null
-					echo -e "\033[32mDONE\033[0m"
-				else
-					echo -e "\033[31mFAILED\033[0m"
-					ALL_FONTS_INSTALLED="no"
-				fi
-			fi
-		done < "${TMP_DIR}/fonts"
-		if [ "${ALL_FONTS_INSTALLED}" = "yes" ]; then
-			echo "All fonts installed."
+		echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
+	else
+		if [ "${PLATFORM}" = "OS X" ]; then
+			echo "pip3 is not installed; you can install it by updating your version of Python using Homebrew."
+		elif [ "${PLATFORM}" = "Windows" ]; then
+			echo -e "pip3 is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
+		elif [ "${PLATFORM}" = "Linux" ]; then
+			echo -e "pip3 is not installed; you can install it by installing python3-pip."
 		fi
-	else
-		echo -e "\033[31mFAILED\033[0m"
+		echo -e "Once installed, don't forget to rerun this script."
 	fi
-fi
-
-# Check pip status.
-echo
-echo -e "\033[37m===>\033[0m PIP \033[37m<===\033[0m"
-if command -v python &>/dev/null && command -v pip &>/dev/null; then
-	# This can be used when automatically installing packages.
-	SITE_PACKAGE_DIR="$(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" 2>/dev/null)"
-	if [ ! -w "${SITE_PACKAGE_DIR}" ]; then
-		PIP="sudo pip"
-	else
-		PIP="pip"
-	fi
-	printf "Downloading pip formula list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/all/pip-packages" ${OUTPUT} "${TMP_DIR}/pip-packages"; then
-		echo -e "\033[32mDONE\033[0m"
-
-		# Check for missing packages.
-		pip freeze > "${TMP_DIR}/pip-installed"
-		PACKAGES_TO_INSTALL=()
-		for PACKAGE in $(cat "${TMP_DIR}/pip-packages"); do
-			if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip-installed"; then
-				echo -e "${PACKAGE} is not installed."
-				PACKAGES_TO_INSTALL+=("${PACKAGE}")
-			fi
-		done
-		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-			echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
-		else
-			echo "All packages installed."
-		fi
-	else
-		echo -e "\033[31mFAILED\033[0m"
-	fi
-	echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
-else
-	if [ "${PLATFORM}" = "OS X" ]; then
-		echo "pip is not installed; you can install it by updating your version of Python using Homebrew."
-	elif [ "${PLATFORM}" = "Windows" ]; then
-		echo -e "pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
-	elif [ "${PLATFORM}" = "Linux" ]; then
-		echo -e "pip is not installed; you can install it by installing python-pip."
-	fi
-	echo -e "Once installed, don't forget to rerun this script."
-fi
-
-# Check pip3 status.
-echo
-echo -e "\033[37m===>\033[0m PIP3 \033[37m<===\033[0m"
-if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
-	# This can be used when automatically installing packages.
-	SITE_PACKAGE_DIR="$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" 2>/dev/null)"
-	if [ ! -w "${SITE_PACKAGE_DIR}" ]; then
-		PIP="sudo pip3"
-	else
-		PIP="pip3"
-	fi
-	printf "Downloading pip3 formula list... "
-	if ${DOWNLOAD} "${FILE_LOCATION}/all/pip3-packages" ${OUTPUT} "${TMP_DIR}/pip3-packages"; then
-		echo -e "\033[32mDONE\033[0m"
-
-		# Check for missing packages.
-		pip3 freeze > "${TMP_DIR}/pip3-installed"
-		PACKAGES_TO_INSTALL=()
-		for PACKAGE in $(cat "${TMP_DIR}/pip3-packages"); do
-			if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip3-installed"; then
-				echo -e "${PACKAGE} is not installed."
-				PACKAGES_TO_INSTALL+=("${PACKAGE}")
-			fi
-		done
-		if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-			echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
-		else
-			echo "All packages installed."
-		fi
-	else
-		echo -e "\033[31mFAILED\033[0m"
-	fi
-	echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
-else
-	if [ "${PLATFORM}" = "OS X" ]; then
-		echo "pip3 is not installed; you can install it by updating your version of Python using Homebrew."
-	elif [ "${PLATFORM}" = "Windows" ]; then
-		echo -e "pip3 is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
-	elif [ "${PLATFORM}" = "Linux" ]; then
-		echo -e "pip3 is not installed; you can install it by installing python3-pip."
-	fi
-	echo -e "Once installed, don't forget to rerun this script."
 fi
