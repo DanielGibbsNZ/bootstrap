@@ -34,26 +34,30 @@ function install_file {
 	FILE="$1"
 	DEST="$2"
 	printf "Installing ${FILE}... "
-	if [ -e "${DEST}/${FILE}" ]; then
+	if [ -e "${DEST}/${FILE}" -a "${ALWAYS_REPLACE}" = "no" ]; then
 		# If file already exists check for differences.
+		# Unless the --replace argument was given.
 		if cmp -s "${DEST}/${FILE}" "${TMP_DIR}/${FILE}"; then
 			echo -e "\033[32mDONE\033[0m"
 		else
 			# If there are differences, ask the user which version they want.
+			# Unless the --never-replace argument was given.
 			echo -e "\033[33mEXISTS\033[0m"
-			REPLACE=""
-			while [ "${REPLACE}" != "y" -a "${REPLACE}" != "n" -a "${REPLACE}" != "m" ]; do
-				read -p "Replace original file (d for diff, m for manual merge)? (y/n/d/m) " REPLACE
-				if [ "${REPLACE}" = "d" ]; then
-					${DIFF} "${DEST}/${FILE}" "${TMP_DIR}/${FILE}" | less -r
+			if [ "${NEVER_REPLACE}" = "no" ]; then
+				REPLACE=""
+				while [ "${REPLACE}" != "y" -a "${REPLACE}" != "n" -a "${REPLACE}" != "m" ]; do
+					read -p "Replace original file (d for diff, m for manual merge)? (y/n/d/m) " REPLACE
+					if [ "${REPLACE}" = "d" ]; then
+						${DIFF} "${DEST}/${FILE}" "${TMP_DIR}/${FILE}" | less -r
+					fi
+				done
+				if [ "${REPLACE}" = "y" ]; then
+					cp "${TMP_DIR}/${FILE}" "${DEST}/${FILE}"
+				elif [ "${REPLACE}" = "m" ]; then
+					MERGE_FILE="${DEST}/${FILE}.bootstrap"
+					cp "${TMP_DIR}/${FILE}" "${DEST}/${FILE}.bootstrap"
+					echo "The downloaded version of ${FILE} can be found in ${MERGE_FILE} for manual merging."
 				fi
-			done
-			if [ "${REPLACE}" = "y" ]; then
-				cp "${TMP_DIR}/${FILE}" "${DEST}/${FILE}"
-			elif [ "${REPLACE}" = "m" ]; then
-				MERGE_FILE="${DEST}/${FILE}.bootstrap"
-				cp "${TMP_DIR}/${FILE}" "${DEST}/${FILE}.bootstrap"
-				echo "The downloaded version of ${FILE} can be found in ${MERGE_FILE} for manual merging."
 			fi
 		fi
 	else
@@ -106,10 +110,10 @@ while [ $# -gt 0 ]; do
 		-c|--clean)
 			CLEAN="yes"
 			;;
-		-R|--replace)
+		-r|--replace)
 			ALWAYS_REPLACE="yes"
 			;;
-		-r|--no-replace|--noreplace)
+		-n|--no-replace|--noreplace)
 			NEVER_REPLACE="yes"
 			;;
 		--skip=*)
@@ -146,6 +150,10 @@ while [ $# -gt 0 ]; do
 			echo "                                 store downloaded files."
 			echo "  -c/--clean                     Remove any temporary downloaded files or files"
 			echo "                                 used to manually merge."
+			echo "  -r/--replace                   Always replace downloaded files if there is a"
+			echo "                                 different version already present."
+			echo "  -n/--no-replace                Never replace downloaded files if there is a"
+			echo "                                 different version already present."
 			echo
 			echo "Sections:"
 			echo "  ${ALL_SECTIONS[@]}"
