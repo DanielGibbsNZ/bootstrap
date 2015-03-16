@@ -94,8 +94,24 @@ fi
 
 # Process arguments.
 SKIPPED_SECTIONS=()
+ALWAYS_REPLACE="no"
+NEVER_REPLACE="no"
+KEEP_TMP="no"
+CLEAN="no"
 while [ $# -gt 0 ]; do
 	case "$1" in
+		-k|--keep-tmp|--keeptmp)
+			KEEP_TMP="yes"
+			;;
+		-c|--clean)
+			CLEAN="yes"
+			;;
+		-R|--replace)
+			ALWAYS_REPLACE="yes"
+			;;
+		-r|--no-replace|--noreplace)
+			NEVER_REPLACE="yes"
+			;;
 		--skip=*)
 			ARGS=$(echo "$1" | tail -c +8)
 			set -- "--skip" "${ARGS}" "${@:2}"
@@ -126,6 +142,10 @@ while [ $# -gt 0 ]; do
 			echo "Options:"
 			echo "  -h/--help                      Display this help message."
 			echo "  -s/--skip section1,section2... Skip the given sections."
+			echo "  -k/--keep-tmp                  Do not delete the temporary folder used to"
+			echo "                                 store downloaded files."
+			echo "  -c/--clean                     Remove any temporary downloaded files or files"
+			echo "                                 used to manually merge."
 			echo
 			echo "Sections:"
 			echo "  ${ALL_SECTIONS[@]}"
@@ -161,6 +181,23 @@ for SECTION in "${SKIPPED_SECTIONS[@]}"; do
 	done
 done
 
+if [ "${CLEAN}" = "yes" ]; then
+	echo -e "\033[37m===>\033[0m CLEAN \033[37m<===\033[0m"
+		OLDIFS="${IFS}"
+		IFS=$'\n'
+		for FILE in $(ls "${INSTALL_LOCATION}"/*.bootstrap 2>/dev/null); do
+			echo -e "Removing \033[36;1m${FILE}\033[0m..."
+			rm "${FILE}"
+		done
+		for DIR in $(ls -d "/tmp"/bootstrap* 2>/dev/null); do
+			echo -e "Removing \033[36;1m${DIR}\033[0m..."
+			rm -rf "${DIR}"
+		done
+		IFS="${OLDIFS}"
+	echo "All files cleaned."
+	exit 0
+fi
+
 # Output general information about bootstrap.
 echo -e "\033[37m>>>>\033[0m BOOTSTRAP \033[37m<<<<\033[0m"
 if [ "${#SECTIONS[@]}" -gt 0 ]; then
@@ -176,9 +213,9 @@ if [ $? -ne 0 ]; then
 	echo "Unable to create temporary directory."
 	exit 1
 fi
-trap "rm -rf ${TMP_DIR}; exit 0" EXIT SIGINT SIGKILL SIGTERM
-
-
+if [ "${KEEP_TMP}" = "no" ]; then
+	trap "rm -rf ${TMP_DIR}; exit 0" EXIT SIGINT SIGKILL SIGTERM
+fi
 
 if do_section "config"; then
 	# Download and install RC files.
