@@ -19,3 +19,5 @@
 	statusHints = false
 [merge]
 	tool = vimdiff
+[log]
+	decorate = auto
