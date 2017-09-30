@@ -12,9 +12,9 @@
 [push]
 	default = upstream
 [alias]
-	unstage = reset HEAD
 	count = rev-list HEAD --count
 	diff2 = diff --word-diff=color
+	git = !exec git
 [advice]
 	statusHints = false
 [merge]
