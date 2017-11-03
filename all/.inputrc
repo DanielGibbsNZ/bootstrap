@@ -1,0 +1,13 @@
+# Incremental searching with Up and Down.
+# Old Up/Down behaviour available using Ctrl+P and Ctrl+N.
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# M-/ to comment the current line.
+"\e/": insert-comment
+
+# `man bash`, search for "Readline Command Names"
+
+set colored-completion-prefix on
+set expand-tilde on
+set show-mode-in-prompt on
