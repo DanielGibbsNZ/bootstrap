@@ -1,17 +1,11 @@
-android-sdk
-ant
-apktool
 arping
 binutils
 colordiff
-dex2jar
 dos2unix
 exiftool
 faac
 ffmpeg
 git
-gtk+
-gtk+3
 htop-osx
 httping
 httpry
@@ -20,7 +14,6 @@ iftop
 imagemagick
 jpegoptim
 markdown
-minicom
 mitmproxy
 mtr
 nmap
@@ -40,4 +33,3 @@ wget
 wireshark
 caskroom/cask/brew-cask
 homebrew/dupes/nano
-homebrew/binary/jad
