@@ -31,9 +31,15 @@ if [ -f /usr/libexec/java_home ]; then
 	export JAVA_HOME=$(/usr/libexec/java_home)
 fi
 
-# If running bash, include .bashrc if it exists.
+# If running bash, do bash-specific setup.
 if [ -n "$BASH_VERSION" ]; then
+	# Include .bashrc if it exists.
 	if [ -f "$HOME/.bashrc" ]; then
 		. "$HOME/.bashrc"
+	fi
+
+	# Set up direnv.
+	if command -v direnv &>/dev/null; then
+		eval "$(direnv hook bash)"
 	fi
 fi
