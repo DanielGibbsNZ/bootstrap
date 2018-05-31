@@ -30,13 +30,24 @@ HISTCONTROL=ignoreboth
 HISTSIZE=1000
 HISTFILESIZE=2000
 
-if type -t __git_ps1 | grep -q "function"; then
-	# Set the prompt to "[user@host directory (branch)]$ " with colours.
-	export PS1='[\[\033[32m\]\u@\h\[\033[00m\] \[\033[34m\]\W\[\033[00m\]$(__git_ps1 " \[\033[31m\](%s)")\[\033[00m\]]\$ '
-else
-	# Set the prompt to "[user@host directory]$ " with colours.
-	export PS1='[\[\033[32m\]\u@\h\[\033[00m\] \[\033[34m\]\W\[\033[00m\]]\$ '
-fi
+# Create `ps1` function to set PS1.
+function ps1 {
+	# Default the prompt to "[user@host directory]$ " with colours.
+	PROMPT='\[\033[32m\]\u@\h\[\033[00m\] \[\033[34m\]\W\[\033[00m'
+	if type -t __git_ps1 | grep -q "function"; then
+		# If in a git repository, add the branch name to the prompt.
+		GIT_PROMPT='$(__git_ps1 " \[\033[31m\](%s)")\[\033[00m'
+		PROMPT="${PROMPT}${GIT_PROMPT}"
+	fi
+
+	# If label is set, add label to prompt.
+	if [ -n "$1" ]; then
+		LABEL="\[\033[36m\]$1\[\033[00m\]"
+		PROMPT="${PROMPT} ${LABEL}"
+	fi
+	export PS1="[${PROMPT}]\$ "
+}
+ps1
 
 # Create files as 755 or 644.
 umask 022
