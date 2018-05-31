@@ -26,6 +26,11 @@ if [ -d "$HOME/Scripts" ]; then
 	export PATH="$PATH:$HOME/Scripts"
 fi
 
+# If Java exists, export JAVA_HOME.
+if [ -f /usr/libexec/java_home ]; then
+	export JAVA_HOME=$(/usr/libexec/java_home)
+fi
+
 # If running bash, include .bashrc if it exists.
 if [ -n "$BASH_VERSION" ]; then
 	if [ -f "$HOME/.bashrc" ]; then
