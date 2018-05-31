@@ -1,4 +1,3 @@
 Flask
-mitmproxy
 requests
 requests-oauthlib
