@@ -7,7 +7,7 @@ SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
 NANORC_LOCATIONS=("/usr/share/nano" "/usr/local/share/nano")
-RC_FILES=(".bashrc" ".inputrc" ".vimrc" ".nanorc" ".gitconfig")
+RC_FILES=(".bashrc" ".inputrc" ".vimrc" ".nanorc" ".gitconfig", ".gitignore_global")
 
 # Function to check if a section is valid.
 function valid_section {
