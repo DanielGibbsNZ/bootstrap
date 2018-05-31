@@ -23,4 +23,3 @@ wakeonlan
 wget
 wireshark
 caskroom/cask/brew-cask
-homebrew/dupes/nano

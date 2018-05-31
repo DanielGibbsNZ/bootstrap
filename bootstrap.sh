@@ -6,8 +6,7 @@ ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" 
 SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
-NANORC_LOCATIONS=("/usr/share/nano" "/usr/local/share/nano")
-RC_FILES=(".bashrc" ".inputrc" ".vimrc" ".nanorc" ".gitconfig", ".gitignore_global")
+CONFIG_FILES=(".bashrc" ".inputrc" ".vimrc" ".gitconfig" ".gitignore_global")
 
 # Function to check if a section is valid.
 function valid_section {
@@ -229,7 +228,7 @@ if do_section "config"; then
 	# Download and install RC files.
 	echo
 	echo -e "\033[37m===>\033[0m CONFIG FILES \033[37m<===\033[0m"
-	for FILE in "${RC_FILES[@]}"; do
+	for FILE in "${CONFIG_FILES[@]}"; do
 		printf "Downloading ${FILE}... "
 		if ${DOWNLOAD} "${FILE_LOCATION}/all/${FILE}" ${OUTPUT} "${TMP_DIR}/${FILE}"; then
 			echo -e "\033[32mDONE\033[0m"
@@ -237,19 +236,6 @@ if do_section "config"; then
 			echo -e "\033[31mFAILED\033[0m"
 			continue
 		fi
-
-		# Search for nanorc files and add them to .nanorc.
-		if [ "${FILE}" = ".nanorc" ]; then
-			for NANORC_LOCATION in "${NANORC_LOCATIONS[@]}"; do
-				if [ -d "${NANORC_LOCATION}" ]; then
-					echo >> "${TMP_DIR}/${FILE}"
-					for NANORC_FILE in $(ls "${NANORC_LOCATION}"/*.nanorc 2>/dev/null); do
-						echo "include ${NANORC_FILE}" >> "${TMP_DIR}/${FILE}"
-					done
-				fi
-			done
-		fi
-
 		install_file "${FILE}" "${INSTALL_LOCATION}"
 	done
 fi
