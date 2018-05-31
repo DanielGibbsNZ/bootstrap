@@ -12,6 +12,7 @@ git
 htop
 imagemagick
 jpegoptim
+jq
 libimage-exiftool-perl
 make
 nano

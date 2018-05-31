@@ -9,6 +9,7 @@ htop
 id3lib
 imagemagick
 jpegoptim
+jq
 markdown
 nmap
 pngcrush
