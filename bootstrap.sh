@@ -306,7 +306,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		TERMINAL_PLIST="${HOME}/Library/Preferences/com.apple.Terminal.plist"
 		function set_terminal_profile {
 			if /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
-				if [ -f "${HOME}/Library/Fonts/DroidSansMono.ttf" ]; then
+				if [ -f "${HOME}/Library/Fonts/FiraMono-Regular.ttf" ]; then
 					TERMINAL_PROFILE="Dark"
 				else
 					TERMINAL_PROFILE="Dark (Monaco)"
@@ -317,7 +317,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		}
 
 		# Download and install terminal profile "Dark" if it doesn't exist, and use this by default.
-		# The terminal profile "Dark (Monaco)" is also installed, to be used if the font "Droid Sans Mono" isn't installed.
+		# The terminal profile "Dark (Monaco)" is also installed, to be used if the font "Fira Mono" isn't installed.
 		if ! /usr/libexec/PlistBuddy -c "Print :Window\ Settings:Dark" "${TERMINAL_PLIST}" &>/dev/null; then
 			printf "Downloading terminal profile... "
 			if ${DOWNLOAD} "${FILE_LOCATION}/osx/terminal_profile.plist" ${OUTPUT} "${TMP_DIR}/terminal_profile.plist"; then
