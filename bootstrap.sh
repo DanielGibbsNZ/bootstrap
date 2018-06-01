@@ -2,7 +2,7 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "pip3")
+ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip")
 SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
@@ -522,20 +522,27 @@ if do_section "pip"; then
 	# Check pip status.
 	echo
 	echo -e "\033[37m===>\033[0m PIP \033[37m<===\033[0m"
-	if command -v python &>/dev/null && command -v pip &>/dev/null; then
+
+	# Try and find the correct pip command for Python 3.
+	PIP=""
+	if command -v pip3 &>/dev/null; then
+		PIP="pip3"
+	elif pip --version 2>/dev/null | grep -q "python3"; then
+		PIP="pip"
+	fi
+
+	if [ -n "${PIP}" ]; then
 		# This can be used when automatically installing packages.
-		SITE_PACKAGE_DIR="$(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" 2>/dev/null)"
+		SITE_PACKAGE_DIR="$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" 2>/dev/null)"
 		if [ ! -w "${SITE_PACKAGE_DIR}" ]; then
-			PIP="sudo pip"
-		else
-			PIP="pip"
+			PIP="sudo ${PIP}"
 		fi
 		printf "Downloading pip formula list... "
 		if ${DOWNLOAD} "${FILE_LOCATION}/all/pip-packages" ${OUTPUT} "${TMP_DIR}/pip-packages"; then
 			echo -e "\033[32mDONE\033[0m"
 
 			# Check for missing packages.
-			pip freeze > "${TMP_DIR}/pip-installed"
+			${PIP} freeze > "${TMP_DIR}/pip-installed"
 			PACKAGES_TO_INSTALL=()
 			for PACKAGE in $(cat "${TMP_DIR}/pip-packages"); do
 				if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip-installed"; then
@@ -556,55 +563,9 @@ if do_section "pip"; then
 		if [ "${PLATFORM}" = "OS X" ]; then
 			echo "pip is not installed; you can install it by updating your version of Python using Homebrew."
 		elif [ "${PLATFORM}" = "Windows" ]; then
-			echo -e "pip is not installed; you can install it by installing python-setuptools and running \033[36;1measy_install2.7 pip\033[0m."
+			echo -e "pip is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
 		elif [ "${PLATFORM}" = "Linux" ]; then
-			echo -e "pip is not installed; you can install it by installing python-pip."
-		fi
-		echo -e "Once installed, don't forget to rerun this script."
-	fi
-fi
-
-if do_section "pip3"; then
-	# Check pip3 status.
-	echo
-	echo -e "\033[37m===>\033[0m PIP3 \033[37m<===\033[0m"
-	if command -v python3 &>/dev/null && command -v pip3 &>/dev/null; then
-		# This can be used when automatically installing packages.
-		SITE_PACKAGE_DIR="$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" 2>/dev/null)"
-		if [ ! -w "${SITE_PACKAGE_DIR}" ]; then
-			PIP="sudo pip3"
-		else
-			PIP="pip3"
-		fi
-		printf "Downloading pip3 formula list... "
-		if ${DOWNLOAD} "${FILE_LOCATION}/all/pip3-packages" ${OUTPUT} "${TMP_DIR}/pip3-packages"; then
-			echo -e "\033[32mDONE\033[0m"
-
-			# Check for missing packages.
-			pip3 freeze > "${TMP_DIR}/pip3-installed"
-			PACKAGES_TO_INSTALL=()
-			for PACKAGE in $(cat "${TMP_DIR}/pip3-packages"); do
-				if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip3-installed"; then
-					echo -e "${PACKAGE} is not installed."
-					PACKAGES_TO_INSTALL+=("${PACKAGE}")
-				fi
-			done
-			if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
-				echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
-			else
-				echo "All packages installed."
-			fi
-		else
-			echo -e "\033[31mFAILED\033[0m"
-		fi
-		echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
-	else
-		if [ "${PLATFORM}" = "OS X" ]; then
-			echo "pip3 is not installed; you can install it by updating your version of Python using Homebrew."
-		elif [ "${PLATFORM}" = "Windows" ]; then
-			echo -e "pip3 is not installed; you can install it by installing python3-setuptools and running \033[36;1measy_install3.4 pip\033[0m."
-		elif [ "${PLATFORM}" = "Linux" ]; then
-			echo -e "pip3 is not installed; you can install it by installing python3-pip."
+			echo -e "pip is not installed; you can install it by installing python3-pip."
 		fi
 		echo -e "Once installed, don't forget to rerun this script."
 	fi

@@ -17,8 +17,6 @@ libimage-exiftool-perl
 make
 nmap
 openssl
-python
-python-pip
 python3
 python3-pip
 screen
