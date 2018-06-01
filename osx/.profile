@@ -27,8 +27,9 @@ if [ -d "$HOME/Scripts" ]; then
 fi
 
 # If Java exists, export JAVA_HOME.
-if [ -f /usr/libexec/java_home ]; then
-	export JAVA_HOME=$(/usr/libexec/java_home)
+JAVA_HOME=$(/usr/libexec/java_home 2>/dev/null)
+if [ -n "$JAVA_HOME" ]; then
+	export JAVA_HOME
 fi
 
 # If running bash, do bash-specific setup.
