@@ -33,10 +33,10 @@ HISTFILESIZE=2000
 # Create `ps1` function to set PS1.
 function ps1 {
 	# Default the prompt to "[user@host directory]$ " with colours.
-	PROMPT='\[\033[32m\]\u@\h\[\033[00m\] \[\033[34m\]\W\[\033[00m'
+	PROMPT='\[\033[32m\]\u@\h\[\033[00m\] \[\033[34m\]\W\[\033[00m\]'
 	if type -t __git_ps1 | grep -q "function"; then
 		# If in a git repository, add the branch name to the prompt.
-		GIT_PROMPT='$(__git_ps1 " \[\033[31m\](%s)")\[\033[00m'
+		GIT_PROMPT='$(__git_ps1 " \[\033[31m\](%s)")\[\033[00m\]'
 		PROMPT="${PROMPT}${GIT_PROMPT}"
 	fi
 
