@@ -251,6 +251,15 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
+
+		# Download and install .phoenix.js.
+		printf "Downloading .phoenix.js... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/osx/.phoenix.js" ${OUTPUT} "${TMP_DIR}/.phoenix.js"; then
+			echo -e "\033[32mDONE\033[0m"
+			install_file ".phoenix.js" "${INSTALL_LOCATION}"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
 	fi
 
 	if do_section "scripts"; then
