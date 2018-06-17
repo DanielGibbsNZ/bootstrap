@@ -44,7 +44,7 @@ function findLeftScreen(screen) {
     return leftScreen;
 }
 
-function findrightScreen(screen) {
+function findRightScreen(screen) {
     var rightScreen = null;
     Screen.all().forEach(function(aScreen) {
         if (aScreen.frame().y === screen.frame().y || aScreen.frame().y + aScreen.frame().height === screen.frame().y + screen.frame().height) {
