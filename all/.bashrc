@@ -20,9 +20,6 @@ shopt -s checkwinsize
 # Append to the history file, don't overwrite it.
 shopt -s histappend
 
-# Forgive small errors when changing directories.
-shopt -s cdspell
-
 # Don't put duplicate lines or lines starting with space in the history.
 HISTCONTROL=ignoreboth
 
