@@ -371,6 +371,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			printf "Downloading Homebrew formula list... "
 			if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-formulae" ${OUTPUT} "${TMP_DIR}/homebrew-formulae"; then
 				echo -e "\033[32mDONE\033[0m"
+				echo
 
 				# Check for missing formulae.
 				brew list > "${TMP_DIR}/homebrew-installed" 2>/dev/null
@@ -378,12 +379,13 @@ if [ "${PLATFORM}" = "OS X" ]; then
 				for FORMULA in $(cat "${TMP_DIR}/homebrew-formulae"); do
 					LAST_PART=$(echo "${FORMULA}" | grep -o "[^/]*$")
 					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-installed"; then
-						echo -e "${LAST_PART} is not installed."
+						echo -e "\033[33m${LAST_PART}\033[0m is not installed."
 						FORMULAE_TO_INSTALL+=("${FORMULA}")
 					fi
 				done
 
 				if [ ${#FORMULAE_TO_INSTALL[@]} -gt 0 ]; then
+					echo
 					echo -e "You can install the missing formulae with \033[36;1mbrew install ${FORMULAE_TO_INSTALL[@]}\033[0m."
 				else
 					echo "All formulae installed."
@@ -395,9 +397,11 @@ if [ "${PLATFORM}" = "OS X" ]; then
 				echo -e "\033[31mFAILED\033[0m"
 			fi
 
+			echo
 			printf "Downloading Homebrew cask list... "
 			if ${DOWNLOAD} "${FILE_LOCATION}/osx/homebrew-casks" ${OUTPUT} "${TMP_DIR}/homebrew-casks"; then
 				echo -e "\033[32mDONE\033[0m"
+				echo
 
 				# Check for missing casks.
 				CASKS_TO_INSTALL=()
@@ -405,12 +409,13 @@ if [ "${PLATFORM}" = "OS X" ]; then
 				for CASK in $(cat "${TMP_DIR}/homebrew-casks"); do
 					LAST_PART=$(echo "${CASK}" | grep -o "[^/]*$")
 					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-casks-installed"; then
-						echo -e "${LAST_PART} is not installed."
+						echo -e "\033[33m${LAST_PART}\033[0m is not installed."
 						CASKS_TO_INSTALL+=("${CASK}")
 					fi
 				done
 
 				if [ ${#CASKS_TO_INSTALL[@]} -gt 0 ]; then
+					echo
 					echo -e "You can install the missing casks with \033[36;1mbrew cask install ${CASKS_TO_INSTALL[@]}\033[0m."
 				else
 					echo "All casks installed."
@@ -419,6 +424,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 				echo -e "\033[31mFAILED\033[0m"
 			fi
 
+			echo
 			echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
 		else
 			echo "Homebrew is not installed; you can install it with the following command."
@@ -434,6 +440,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		printf "Downloading apps list... "
 		if ${DOWNLOAD} "${FILE_LOCATION}/osx/apps" ${OUTPUT} "${TMP_DIR}/apps"; then
 			echo -e "\033[32mDONE\033[0m"
+			echo
 
 			# Check for missing apps.
 			OLDIFS="${IFS}"
@@ -441,7 +448,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			APPS_TO_INSTALL=()
 			for APP in $(cat "${TMP_DIR}/apps"); do
 				if [ ! -e "/Applications/${APP}.app" ]; then
-					echo -e "${APP} is not installed."
+					echo -e "\033[33m${APP}\033[0m is not installed."
 					APPS_TO_INSTALL+=("${APP}")
 				fi
 			done
@@ -471,17 +478,19 @@ if [ "${PLATFORM}" = "Linux" ]; then
 			printf "Downloading Aptitude package list... "
 			if ${DOWNLOAD} "${FILE_LOCATION}/linux/aptitude-packages" ${OUTPUT} "${TMP_DIR}/aptitude-packages"; then
 				echo -e "\033[32mDONE\033[0m"
+				echo
 
 				# Check for missing packages.
 				dpkg --get-selections | awk '{print $1}' > "${TMP_DIR}/aptitude-installed"
 				PACKAGES_TO_INSTALL=()
 				for PACKAGE in $(cat "${TMP_DIR}/aptitude-packages"); do
 					if ! grep "^${PACKAGE}$" -q "${TMP_DIR}/aptitude-installed"; then
-						echo -e "${PACKAGE} is not installed."
+						echo -e "\033[33m${PACKAGE}\033[0m is not installed."
 						PACKAGES_TO_INSTALL+=("${PACKAGE}")
 					fi
 				done
 				if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+					echo
 					echo -e "You can install the missing packages with \033[36;1m${APT_GET} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 				else
 					echo "All packages installed."
@@ -489,6 +498,7 @@ if [ "${PLATFORM}" = "Linux" ]; then
 			else
 				echo -e "\033[31mFAILED\033[0m"
 			fi
+			echo
 			echo -e "Remember to run \033[36;1m${APT_GET} update\033[0m and \033[36;1m${APT_GET} upgrade\033[0m regularly."
 		else
 			echo "What package manager are you using?"
@@ -577,17 +587,19 @@ if do_section "pip"; then
 		printf "Downloading pip formula list... "
 		if ${DOWNLOAD} "${FILE_LOCATION}/all/pip-packages" ${OUTPUT} "${TMP_DIR}/pip-packages"; then
 			echo -e "\033[32mDONE\033[0m"
+			echo
 
 			# Check for missing packages.
 			${PIP} freeze > "${TMP_DIR}/pip-installed"
 			PACKAGES_TO_INSTALL=()
 			for PACKAGE in $(cat "${TMP_DIR}/pip-packages"); do
 				if ! grep "^${PACKAGE}==" -q "${TMP_DIR}/pip-installed"; then
-					echo -e "${PACKAGE} is not installed."
+					echo -e "\033[33m${PACKAGE}\033[0m is not installed."
 					PACKAGES_TO_INSTALL+=("${PACKAGE}")
 				fi
 			done
 			if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
+				echo
 				echo -e "You can install the missing packages with \033[36;1m${PIP} install ${PACKAGES_TO_INSTALL[*]}\033[0m."
 			else
 				echo "All packages installed."
@@ -595,6 +607,7 @@ if do_section "pip"; then
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
+		echo
 		echo -e "Remember to run \033[36;1m${PIP} install --upgrade pip\033[0m regularly."
 	else
 		if [ "${PLATFORM}" = "OS X" ]; then
