@@ -2,7 +2,7 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps" "other")
+ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps" "chrome" "other")
 SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
@@ -460,6 +460,42 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			fi
 		else
 			echo -e "\033[31mFAILED\033[0m"
+		fi
+	fi
+
+	if do_section "chrome"; then
+		# Check whether Chrome is installed.
+		echo
+		echo -e "\033[37m===>\033[0m CHROME \033[37m<===\033[0m"
+		if [ -e "/Applications/Google Chrome.app" ]; then
+			printf "Downloading Chrome extension list... "
+			if ${DOWNLOAD} "${FILE_LOCATION}/osx/chrome-extensions" ${OUTPUT} "${TMP_DIR}/chrome-extensions"; then
+				echo -e "\033[32mDONE\033[0m"
+				echo
+
+				# Check for missing extensions.
+				OLDIFS="${IFS}"
+				IFS=$'\n'
+				EXTENSIONS_DIR="${HOME}/Library/Application Support/Google/Chrome/Default/Extensions"
+				EXTENSIONS_TO_INSTALL=()
+				for EXTENSION in $(cat "${TMP_DIR}/chrome-extensions"); do
+					EXTENSION_ID=$(echo "${EXTENSION}" | cut -d: -f1)
+					EXTENSION_NAME=$(echo "${EXTENSION}" | cut -d: -f2)
+					if [ ! -e "${EXTENSIONS_DIR}/${EXTENSION_ID}" ]; then
+						echo -e "\033[33m${EXTENSION_NAME}\033[0m is not installed."
+						EXTENSIONS_TO_INSTALL+=("${EXTENSION_NAME}")
+					fi
+				done
+				IFS="${OLDIFS}"
+
+				if [ ${#EXTENSIONS_TO_INSTALL[@]} -eq 0 ]; then
+					echo "All extensions installed."
+				fi
+			else
+				echo -e "\033[31mFAILED\033[0m"
+			fi
+		else
+			echo "Google Chrome is not installed."
 		fi
 	fi
 
