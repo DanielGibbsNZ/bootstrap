@@ -2,7 +2,7 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps")
+ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps" "other")
 SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
@@ -425,6 +425,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			fi
 
 			echo
+			echo -e "Make sure to run \033[36;1mbrew doctor\033[0m to make sure everything is configured correctly."
 			echo -e "Remember to run \033[36;1mbrew update\033[0m and \033[36;1mbrew upgrade\033[0m regularly."
 		else
 			echo "Homebrew is not installed; you can install it with the following command."
@@ -460,6 +461,12 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi
+	fi
+
+	if do_section "other"; then
+		echo
+		echo -e "\033[37m===>\033[0m OTHER \033[37m<===\033[0m"
+		echo -e "* Install asdf plugins"
 	fi
 fi
 
