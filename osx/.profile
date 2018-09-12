@@ -8,18 +8,7 @@ if command -v brew &>/dev/null; then
 	if [ -d /usr/local/opt/android-sdk ]; then
 		export ANDROID_HOME="/usr/local/opt/android-sdk"
 	fi
-
-	# Add git bash completion.
-	if [ -f "$(brew --prefix)/etc/bash_completion.d/git-completion.bash" ]; then
-		. "$(brew --prefix)/etc/bash_completion.d/git-completion.bash"
-	fi
-
-	# Add git prompt.
-	if [ -f "$(brew --prefix)/etc/bash_completion.d/git-prompt.sh" ]; then
-		. "$(brew --prefix)/etc/bash_completion.d/git-prompt.sh"
-	fi
 fi
-
 
 # Add Scripts directory to PATH if it exists.
 if [ -d "$HOME/Scripts" ]; then
@@ -39,8 +28,25 @@ if [ -n "$BASH_VERSION" ]; then
 		. "$HOME/.bashrc"
 	fi
 
+	if command -v brew &>/dev/null; then
+		# Add git bash completion.
+		if [ -f "$(brew --prefix)/etc/bash_completion.d/git-completion.bash" ]; then
+			. "$(brew --prefix)/etc/bash_completion.d/git-completion.bash"
+		fi
+
+		# Add git prompt.
+		if [ -f "$(brew --prefix)/etc/bash_completion.d/git-prompt.sh" ]; then
+			. "$(brew --prefix)/etc/bash_completion.d/git-prompt.sh"
+		fi
+	fi
+
 	# Set up direnv.
 	if command -v direnv &>/dev/null; then
 		eval "$(direnv hook bash)"
+	fi
+
+	# Set up asdf.
+	if [ -f "/usr/local/opt/asdf/asdf.sh" ]; then
+		source /usr/local/opt/asdf/asdf.sh
 	fi
 fi
