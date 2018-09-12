@@ -2,7 +2,7 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip")
+ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps")
 SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
@@ -424,6 +424,34 @@ if [ "${PLATFORM}" = "OS X" ]; then
 			echo "Homebrew is not installed; you can install it with the following command."
 			echo -e "\033[36;1mruby -e \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"\033[0m"
 			echo -e "Once installed, don't forget to run \033[36;1mbrew doctor\033[0m and rerun this script."
+		fi
+	fi
+
+	if do_section "apps"; then
+		# Check installed apps.
+		echo
+		echo -e "\033[37m===>\033[0m APPS \033[37m<===\033[0m"
+		printf "Downloading apps list... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/osx/apps" ${OUTPUT} "${TMP_DIR}/apps"; then
+			echo -e "\033[32mDONE\033[0m"
+
+			# Check for missing apps.
+			OLDIFS="${IFS}"
+			IFS=$'\n'
+			APPS_TO_INSTALL=()
+			for APP in $(cat "${TMP_DIR}/apps"); do
+				if [ ! -e "/Applications/${APP}.app" ]; then
+					echo -e "${APP} is not installed."
+					APPS_TO_INSTALL+=("${APP}")
+				fi
+			done
+			IFS="${OLDIFS}"
+
+			if [ ${#APPS_TO_INSTALL[@]} -eq 0 ]; then
+				echo "All apps installed."
+			fi
+		else
+			echo -e "\033[31mFAILED\033[0m"
 		fi
 	fi
 fi
