@@ -54,6 +54,12 @@ defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
+# Use dark mode.
+defaults write NSGlobalDomain AppleInterfaceStyle -string Dark
+
+# Reinstate "Save As..." shortcut.
+defaults write NSGlobalDomain NSUserKeyEquivalents -dict "Save As..." -string "@$s"
+
 #########
 # MOUSE #
 #########
@@ -148,6 +154,9 @@ defaults write com.apple.screencapture type -string "png"
 
 # Disable shadow in screenshots.
 defaults write com.apple.screencapture disable-shadow -bool true
+
+# Disable floating thumbnails after taking a screenshot.
+defaults write com.apple.screencapture show-thumbnail -bool false
 
 ##########
 # FINDER #
@@ -401,6 +410,7 @@ defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
 
 # Disable the all-too-sensitive backswipe.
 defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
+defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
 
 # Use the system-native print preview dialog.
 defaults write com.google.Chrome DisablePrintPreview -bool true
@@ -483,6 +493,9 @@ defaults write com.apple.terminal StringEncodings -array 4
 
 # New tabs open with home as the working directory.
 defaults write com.apple.Terminal NewTabWorkingDirectoryBehavior -int 1
+
+# Disable the annoying line marks
+defaults write com.apple.Terminal ShowLineMarks -int 0
 
 #########
 # XCODE #
