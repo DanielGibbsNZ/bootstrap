@@ -23,11 +23,6 @@ fi
 
 # If running bash, do bash-specific setup.
 if [ -n "$BASH_VERSION" ]; then
-	# Include .bashrc if it exists.
-	if [ -f "$HOME/.bashrc" ]; then
-		. "$HOME/.bashrc"
-	fi
-
 	if command -v brew &>/dev/null; then
 		# Add git bash completion.
 		if [ -f "$(brew --prefix)/etc/bash_completion.d/git-completion.bash" ]; then
@@ -48,5 +43,11 @@ if [ -n "$BASH_VERSION" ]; then
 	# Set up asdf.
 	if [ -f "/usr/local/opt/asdf/asdf.sh" ]; then
 		source /usr/local/opt/asdf/asdf.sh
+	fi
+
+	# Include .bashrc if it exists.
+	# Do this last because the prompt may rely on other things being imported (e.g. git prompt).
+	if [ -f "$HOME/.bashrc" ]; then
+		. "$HOME/.bashrc"
 	fi
 fi
