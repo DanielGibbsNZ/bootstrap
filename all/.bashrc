@@ -55,6 +55,9 @@ export CLICOLOR=1
 # My favourite editor.
 export EDITOR="vi"
 
+# Don't display quotes on files with spaces in them.
+export QUOTING_STYLE=literal
+
 # Cross-platform aliases.
 alias todo='vi .todo'
 if command -v colordiff &>/dev/null; then
