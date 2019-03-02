@@ -1,21 +1,24 @@
 function isEqualRect(rect1, rect2) {
-    return rect1.x === rect2.x && rect1.y === rect2.y && rect1.width === rect2.width && rect1.height === rect2.height;
+  return rect1.x === rect2.x && rect1.y === rect2.y && rect1.width === rect2.width && rect1.height === rect2.height;
 }
 
-// Full screen.
+// Frames.
 
-function fullFrame(screen) {
+var FULL_SCREEN = function(screen) {
   return screen.flippedVisibleFrame();
-}
+};
 
-function moveToFull(window, screen) {
-  var windowFrame = fullFrame(screen);
-  window.setFrame(windowFrame);
-}
+var CENTRE_SCREEN = function(screen) {
+  var screenFrame = screen.flippedVisibleFrame();
+  return {
+    x: screenFrame.x + screenFrame.width / 4,
+    y: screenFrame.y + screenFrame.height / 4,
+    width: screenFrame.width / 2,
+    height: screenFrame.height / 2,
+  };
+};
 
-// Halves.
-
-function leftHalfFrame(screen) {
+var LEFT_HALF = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
     x: screenFrame.x,
@@ -23,14 +26,9 @@ function leftHalfFrame(screen) {
     width: screenFrame.width / 2,
     height: screenFrame.height,
   };
-}
+};
 
-function moveToLeftHalf(window, screen) {
-  var windowFrame = leftHalfFrame(screen);
-  window.setFrame(windowFrame);
-}
-
-function rightHalfFrame(screen) {
+var RIGHT_HALF = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
     x: screenFrame.x + (screenFrame.width / 2),
@@ -38,16 +36,9 @@ function rightHalfFrame(screen) {
     width: screenFrame.width / 2,
     height: screenFrame.height,
   };
-}
+};
 
-function moveToRightHalf(window, screen) {
-  var windowFrame = rightHalfFrame(screen);
-  window.setFrame(windowFrame);
-}
-
-// Thirds.
-
-function leftThirdFrame(screen) {
+var LEFT_THIRD = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
     x: screenFrame.x,
@@ -55,14 +46,9 @@ function leftThirdFrame(screen) {
     width: screenFrame.width / 3,
     height: screenFrame.height,
   };
-}
+};
 
-function moveToLeftThird(window, screen) {
-  var windowFrame = leftThirdFrame(screen);
-  window.setFrame(windowFrame);
-}
-
-function leftTwoThirdsFrame(screen) {
+var LEFT_TWO_THIRDS = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
     x: screenFrame.x,
@@ -70,14 +56,9 @@ function leftTwoThirdsFrame(screen) {
     width: screenFrame.width - (screenFrame.width / 3),
     height: screenFrame.height,
   };
-}
+};
 
-function moveToLeftTwoThirds(window, screen) {
-  var windowFrame = leftTwoThirdsFrame(screen);
-  window.setFrame(windowFrame);
-}
-
-function rightThirdFrame(screen) {
+var RIGHT_THIRD = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
     x: screenFrame.x + screenFrame.width - (screenFrame.width / 3),
@@ -85,14 +66,9 @@ function rightThirdFrame(screen) {
     width: screenFrame.width / 3,
     height: screenFrame.height,
   };
-}
+};
 
-function moveToRightThird(window, screen) {
-  var windowFrame = rightThirdFrame(screen);
-  window.setFrame(windowFrame);
-}
-
-function rightTwoThirdsFrame(screen) {
+var RIGHT_TWO_THIRDS = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
     x: screenFrame.x + (screenFrame.width / 3),
@@ -100,37 +76,45 @@ function rightTwoThirdsFrame(screen) {
     width: screenFrame.width - (screenFrame.width / 3),
     height: screenFrame.height,
   };
+};
+
+// Window checking and moving.
+
+function windowIs(window, frameFunc) {
+  var screen = window.screen();
+  var frame = frameFunc(screen);
+  return isEqualRect(window.frame(), frame);
 }
 
-function moveToRightTwoThirds(window, screen) {
-  var windowFrame = rightTwoThirdsFrame(screen);
-  window.setFrame(windowFrame);
+function moveWindow(window, screen, frameFunc) {
+  var frame = frameFunc(screen);
+  window.setFrame(frame);
 }
 
 // Screen locating.
 
 function findLeftScreen(screen) {
-    var leftScreen = null;
-    Screen.all().forEach(function(aScreen) {
-        if (aScreen.frame().y === screen.frame().y || aScreen.frame().y + aScreen.frame().height === screen.frame().y + screen.frame().height) {
-            if (aScreen.frame().x + aScreen.frame().width === screen.frame().x) {
-                leftScreen = aScreen;
-            }
-        }
-    });
-    return leftScreen;
+  var leftScreen = null;
+  Screen.all().forEach(function(aScreen) {
+    if (aScreen.frame().y === screen.frame().y || aScreen.frame().y + aScreen.frame().height === screen.frame().y + screen.frame().height) {
+      if (aScreen.frame().x + aScreen.frame().width === screen.frame().x) {
+        leftScreen = aScreen;
+      }
+    }
+  });
+  return leftScreen;
 }
 
 function findRightScreen(screen) {
-    var rightScreen = null;
-    Screen.all().forEach(function(aScreen) {
-        if (aScreen.frame().y === screen.frame().y || aScreen.frame().y + aScreen.frame().height === screen.frame().y + screen.frame().height) {
-            if (aScreen.frame().x === screen.frame().x + screen.frame().width) {
-                rightScreen = aScreen;
-            }
-        }
-    });
-    return rightScreen;
+  var rightScreen = null;
+  Screen.all().forEach(function(aScreen) {
+    if (aScreen.frame().y === screen.frame().y || aScreen.frame().y + aScreen.frame().height === screen.frame().y + screen.frame().height) {
+      if (aScreen.frame().x === screen.frame().x + screen.frame().width) {
+        rightScreen = aScreen;
+      }
+    }
+  });
+  return rightScreen;
 }
 
 // Modals.
@@ -162,7 +146,7 @@ Key.on('up', [ 'ctrl', 'alt' ], function () {
 
   if (window) {
     var screen = window.screen();
-    moveToFull(window, screen);
+    moveWindow(window, screen, FULL_SCREEN);
   }
 });
 
@@ -171,14 +155,7 @@ Key.on('down', [ 'ctrl', 'alt' ], function () {
 
   if (window) {
     var screen = window.screen();
-    var screenFrame = screen.flippedVisibleFrame();
-    var windowFrame = {
-      x: screenFrame.x + screenFrame.width / 4,
-      y: screenFrame.y + screenFrame.height / 4,
-      width: screenFrame.width / 2,
-      height: screenFrame.height / 2,
-    };
-    window.setFrame(windowFrame);
+    moveWindow(window, screen, CENTRE_SCREEN);
   }
 });
 
@@ -190,30 +167,30 @@ Key.on('left', [ 'ctrl', 'alt' ], function () {
     var screen = window.screen();
 
     if (thirdsMode) {
-      if (isEqualRect(window.frame(), fullFrame(screen))) {
-        moveToLeftTwoThirds(window, screen);
-      } else if (isEqualRect(window.frame(), leftThirdFrame(screen))) {
+      if (windowIs(window, FULL_SCREEN)) {
+        moveWindow(window, screen, LEFT_TWO_THIRDS);
+      } else if (windowIs(window, LEFT_THIRD)) {
         var leftScreen = findLeftScreen(screen);
         if (leftScreen) {
-          moveToRightThird(window, leftScreen);
+          moveWindow(window, leftScreen, RIGHT_THIRD);
         }
-      } else if (isEqualRect(window.frame(), leftTwoThirdsFrame(screen)) || isEqualRect(window.frame(), leftHalfFrame(screen))) {
-        moveToLeftThird(window, screen);
-      } else if (isEqualRect(window.frame(), rightThirdFrame(screen))) {
-        moveToRightTwoThirds(window, screen);
-      } else if (isEqualRect(window.frame(), rightTwoThirdsFrame(screen))) {
-        moveToFull(window, screen);
+      } else if (windowIs(window, LEFT_TWO_THIRDS) || windowIs(window, LEFT_HALF)) {
+        moveWindow(window, screen, LEFT_THIRD);
+      } else if (windowIs(window, RIGHT_THIRD)) {
+        moveWindow(window, screen, RIGHT_TWO_THIRDS);
+      } else if (windowIs(window, RIGHT_TWO_THIRDS)) {
+        moveWindow(window, screen, FULL_SCREEN);
       } else {
-        moveToLeftTwoThirds(window, screen);
+        moveWindow(window, screen, LEFT_TWO_THIRDS);
       }
     } else {
-      if (isEqualRect(window.frame(), leftHalfFrame(screen))) {
-          var leftScreen = findLeftScreen(screen);
-          if (leftScreen) {
-              moveToRightHalf(window, leftScreen);
-          }
+      if (windowIs(window, LEFT_HALF)) {
+        var leftScreen = findLeftScreen(screen);
+        if (leftScreen) {
+          moveWindow(window, leftScreen, RIGHT_HALF);
+        }
       } else {
-          moveToLeftHalf(window, screen);
+        moveWindow(window, screen, LEFT_HALF);
       }
     }
   }
@@ -227,30 +204,30 @@ Key.on('right', [ 'ctrl', 'alt' ], function () {
     var screen = window.screen();
 
     if (thirdsMode) {
-      if (isEqualRect(window.frame(), fullFrame(screen))) {
-        moveToRightTwoThirds(window, screen);
-      } else if (isEqualRect(window.frame(), rightThirdFrame(screen))) {
+      if (windowIs(window, FULL_SCREEN)) {
+        moveWindow(window, screen, RIGHT_TWO_THIRDS);
+      } else if (windowIs(window, RIGHT_THIRD)) {
         var rightScreen = findRightScreen(screen);
         if (rightScreen) {
-          moveToLeftThird(window, rightScreen);
+          moveWindow(window, rightScreen, LEFT_THIRD);
         }
-      } else if (isEqualRect(window.frame(), rightTwoThirdsFrame(screen)) || isEqualRect(window.frame(), rightHalfFrame(screen))) {
-        moveToRightThird(window, screen);
-      } else if (isEqualRect(window.frame(), leftThirdFrame(screen))) {
-        moveToLeftTwoThirds(window, screen);
-      } else if (isEqualRect(window.frame(), leftTwoThirdsFrame(screen))) {
-        moveToFull(window, screen);
+      } else if (windowIs(window, RIGHT_TWO_THIRDS) || windowIs(window, RIGHT_HALF)) {
+        moveWindow(window, screen, RIGHT_THIRD);
+      } else if (windowIs(window, LEFT_THIRD)) {
+        moveWindow(window, screen, LEFT_TWO_THIRDS);
+      } else if (windowIs(window, LEFT_TWO_THIRDS)) {
+        moveWindow(window, screen, FULL_SCREEN);
       } else {
-        moveToRightTwoThirds(window, screen);
+        moveWindow(window, screen, RIGHT_TWO_THIRDS);
       }
     } else {
-      if (isEqualRect(window.frame(), rightHalfFrame(screen))) {
-          var rightScreen = findRightScreen(screen);
-          if (rightScreen) {
-              moveToLeftHalf(window, rightScreen);
-          }
+      if (windowIs(window, RIGHT_HALF)) {
+        var rightScreen = findRightScreen(screen);
+        if (rightScreen) {
+          moveWindow(window, rightScreen, LEFT_HALF);
+        }
       } else {
-          moveToRightHalf(window, screen);
+        moveWindow(window, screen, RIGHT_HALF);
       }
     }
   }
