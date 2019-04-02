@@ -20,6 +20,9 @@ shopt -s checkwinsize
 # Append to the history file, don't overwrite it.
 shopt -s histappend
 
+# Always use the physical path (resolve symlinks).
+set -P
+
 # Don't put duplicate lines or lines starting with space in the history.
 HISTCONTROL=ignoreboth
 
