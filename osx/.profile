@@ -1,5 +1,8 @@
 # .profile for OS X as it does not include one by default.
 
+# Disable macOS warning about using bash.
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
 # If Homebrew is installed, make sure the relevant directories are in the PATH
 # and PKG_CONFIG_PATH.
 if command -v brew &>/dev/null; then
