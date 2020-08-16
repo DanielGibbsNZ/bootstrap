@@ -22,3 +22,5 @@
 	tool = vimdiff
 [log]
 	decorate = auto
+[pull]
+	ff = only
