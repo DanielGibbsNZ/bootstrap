@@ -1,5 +1,14 @@
+function isEqualish(a, b) {
+    // A leniency of 1px is fine for most apps, but Terminal doesn't extend to the bottom of the screen so 10px is needed.
+    return Math.abs(a - b) <= 10;
+}
+
 function isEqualRect(rect1, rect2) {
-  return rect1.x === rect2.x && rect1.y === rect2.y && rect1.width === rect2.width && rect1.height === rect2.height;
+  return isEqualish(rect1.x, rect2.x) && isEqualish(rect1.y, rect2.y) && isEqualish(rect1.width, rect2.width) && isEqualish(rect1.height, rect2.height);
+}
+
+function stringFromRect(rect) {
+  return `${rect.x},${rect.y},${rect.width},${rect.height}`
 }
 
 // Frames.
