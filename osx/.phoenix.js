@@ -3,10 +3,6 @@ function isEqualish(a, b) {
     return Math.abs(a - b) <= 10;
 }
 
-function isEqualRect(rect1, rect2) {
-  return isEqualish(rect1.x, rect2.x) && isEqualish(rect1.y, rect2.y) && isEqualish(rect1.width, rect2.width) && isEqualish(rect1.height, rect2.height);
-}
-
 function stringFromRect(rect) {
   return `${rect.x},${rect.y},${rect.width},${rect.height}`
 }
@@ -91,8 +87,24 @@ var RIGHT_TWO_THIRDS = function(screen) {
 
 function windowIs(window, frameFunc) {
   var screen = window.screen();
-  var frame = frameFunc(screen);
-  return isEqualRect(window.frame(), frame);
+  var targetFrame = frameFunc(screen);
+  var windowFrame = window.frame();
+
+  // Check that the position and height of the window frame is equalish to the target frame, but don't match the width
+  // of the window frame directly, just check that it is equal or greater. This handles the case where a window has a
+  // minimum width so will never actually match the target frame. E.g. Trying to move a window to a 640x800 frame that
+  // has a minimum width of 700 will result in a frame of 700x800, but as long as the position and height match then it
+  // should match.
+  //
+  // Note that this requires that frame matches be done in order of decreasing width, i.e. checking if a window matches
+  // the left two-thirds of a screen before checking that it matches the left third of a screen, because if the width
+  // is greater than both target frames then it will match both.
+  var positionAndHeightMatches = isEqualish(windowFrame.x, targetFrame.x) && isEqualish(windowFrame.y, targetFrame.y) && isEqualish(windowFrame.height, targetFrame.height);
+  // Note that we still have to have a lenience of 10px to deal with apps like Terminal that make the window slightly
+  // smaller than asked for.
+  var widthMatches = windowFrame.width - targetFrame.width >= -10;
+
+  return positionAndHeightMatches && widthMatches;
 }
 
 function moveWindow(window, screen, frameFunc) {
@@ -176,24 +188,28 @@ Key.on('left', [ 'ctrl', 'alt' ], function () {
     var screen = window.screen();
 
     if (thirdsMode) {
+      // Check in order of decreasing width due to windows with increased width matching multiple target frames.
       if (windowIs(window, FULL_SCREEN)) {
         moveWindow(window, screen, LEFT_TWO_THIRDS);
+      } else if (windowIs(window, LEFT_TWO_THIRDS) || windowIs(window, LEFT_HALF)) {
+        moveWindow(window, screen, LEFT_THIRD);
       } else if (windowIs(window, LEFT_THIRD)) {
         var leftScreen = findLeftScreen(screen);
         if (leftScreen) {
           moveWindow(window, leftScreen, RIGHT_THIRD);
         }
-      } else if (windowIs(window, LEFT_TWO_THIRDS) || windowIs(window, LEFT_HALF)) {
-        moveWindow(window, screen, LEFT_THIRD);
-      } else if (windowIs(window, RIGHT_THIRD)) {
-        moveWindow(window, screen, RIGHT_TWO_THIRDS);
       } else if (windowIs(window, RIGHT_TWO_THIRDS)) {
         moveWindow(window, screen, FULL_SCREEN);
+      } else if (windowIs(window, RIGHT_THIRD)) {
+        moveWindow(window, screen, RIGHT_TWO_THIRDS);
       } else {
         moveWindow(window, screen, LEFT_TWO_THIRDS);
       }
     } else {
-      if (windowIs(window, LEFT_HALF)) {
+      // Check in order of decreasing width due to windows with increased width matching multiple target frames.
+      if (windowIs(window, FULL_SCREEN)) {
+        moveWindow(window, screen, LEFT_HALF);
+      } else if (windowIs(window, LEFT_HALF)) {
         var leftScreen = findLeftScreen(screen);
         if (leftScreen) {
           moveWindow(window, leftScreen, RIGHT_HALF);
@@ -213,24 +229,28 @@ Key.on('right', [ 'ctrl', 'alt' ], function () {
     var screen = window.screen();
 
     if (thirdsMode) {
+      // Check in order of decreasing width due to windows with increased width matching multiple target frames.
       if (windowIs(window, FULL_SCREEN)) {
         moveWindow(window, screen, RIGHT_TWO_THIRDS);
+      } else if (windowIs(window, RIGHT_TWO_THIRDS) || windowIs(window, RIGHT_HALF)) {
+        moveWindow(window, screen, RIGHT_THIRD);
       } else if (windowIs(window, RIGHT_THIRD)) {
         var rightScreen = findRightScreen(screen);
         if (rightScreen) {
           moveWindow(window, rightScreen, LEFT_THIRD);
         }
-      } else if (windowIs(window, RIGHT_TWO_THIRDS) || windowIs(window, RIGHT_HALF)) {
-        moveWindow(window, screen, RIGHT_THIRD);
-      } else if (windowIs(window, LEFT_THIRD)) {
-        moveWindow(window, screen, LEFT_TWO_THIRDS);
       } else if (windowIs(window, LEFT_TWO_THIRDS)) {
         moveWindow(window, screen, FULL_SCREEN);
+      } else if (windowIs(window, LEFT_THIRD)) {
+        moveWindow(window, screen, LEFT_TWO_THIRDS);
       } else {
         moveWindow(window, screen, RIGHT_TWO_THIRDS);
       }
     } else {
-      if (windowIs(window, RIGHT_HALF)) {
+      // Check in order of decreasing width due to windows with increased width matching multiple target frames.
+      if (windowIs(window, FULL_SCREEN)) {
+        moveWindow(window, screen, RIGHT_HALF);
+      } else if (windowIs(window, RIGHT_HALF)) {
         var rightScreen = findRightScreen(screen);
         if (rightScreen) {
           moveWindow(window, rightScreen, LEFT_HALF);
