@@ -16,10 +16,10 @@ var FULL_SCREEN = function(screen) {
 var CENTRE_SCREEN = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
-    x: screenFrame.x + screenFrame.width / 4,
-    y: screenFrame.y + screenFrame.height / 4,
-    width: screenFrame.width / 2,
-    height: screenFrame.height / 2,
+    x: screenFrame.x + screenFrame.width / 6,
+    y: screenFrame.y + screenFrame.height / 6,
+    width: screenFrame.width / 3 * 2,
+    height: screenFrame.height / 3 * 2,
   };
 };
 
