@@ -10,8 +10,12 @@ if has("syntax")
 	match ErrorMsg '\s\+$'
 endif
 
-" Set a nicer color scheme (if it is present).
-silent! colorscheme delek
+" Bright colours!
+set background=dark
+
+" Set a nicer color scheme (if it is present) and make set the background to black.
+silent! colorscheme desert
+hi Normal ctermbg=Black
 
 " Enable better backspace.
 set backspace=2
@@ -29,9 +33,6 @@ set smarttab
 " Disable bell.
 set vb
 set t_vb=
-
-" Bright colours!
-set background=dark
 
 " Ignore case when searching, unless the pattern contains an uppercase character.
 set ignorecase
