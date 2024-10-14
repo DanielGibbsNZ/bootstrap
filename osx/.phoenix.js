@@ -23,6 +23,16 @@ var CENTRE_SCREEN = function(screen) {
   };
 };
 
+var CENTRE_SCREEN_LARGE = function(screen) {
+  var screenFrame = screen.flippedVisibleFrame();
+  return {
+    x: screenFrame.x + screenFrame.width / 8,
+    y: screenFrame.y + screenFrame.height / 8,
+    width: screenFrame.width / 4 * 3,
+    height: screenFrame.height / 4 * 3,
+  };
+};
+
 var LEFT_HALF = function(screen) {
   var screenFrame = screen.flippedVisibleFrame();
   return {
@@ -176,7 +186,11 @@ Key.on('down', [ 'ctrl', 'alt' ], function () {
 
   if (window) {
     var screen = window.screen();
-    moveWindow(window, screen, CENTRE_SCREEN);
+    if (windowIs(window, CENTRE_SCREEN_LARGE)) {
+      moveWindow(window, screen, CENTRE_SCREEN);
+    } else {
+      moveWindow(window, screen, CENTRE_SCREEN_LARGE);
+    }
   }
 });
 
