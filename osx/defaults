@@ -33,6 +33,9 @@ defaults write com.apple.LaunchServices LSQuarantine -bool false
 # Disable Notification Center and remove the menu bar icon.
 launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist 2>/dev/null
 
+# Disable annoying emoji "suggestions" when using character picker.
+sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist emoji_enhancements -dict-add Enabled -bool NO
+
 ##################
 # USER INTERFACE #
 ##################

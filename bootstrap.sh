@@ -289,7 +289,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		printf "Downloading defaults... "
 		if ${DOWNLOAD} "${FILE_LOCATION}/osx/defaults" ${OUTPUT} "${TMP_DIR}/defaults"; then
 			echo -e "\033[32mDONE\033[0m"
-			printf "Setting defaults... "
+			printf "Setting defaults... (may require password)"
 			bash "${TMP_DIR}/defaults"
 			echo -e "\033[32mDONE\033[0m"
 			echo "If this is the first time you're setting these defaults, you may need to restart your computer."
