@@ -14,8 +14,8 @@ endif
 set background=dark
 
 " Set a nicer color scheme (if it is present) and make set the background to black.
-silent! colorscheme desert
-hi Normal ctermbg=Black
+silent! colorscheme sorbet
+hi Normal ctermbg=None
 
 " Enable better backspace.
 set backspace=2
