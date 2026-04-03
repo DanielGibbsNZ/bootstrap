@@ -63,6 +63,10 @@ defaults write NSGlobalDomain AppleInterfaceStyle -string Dark
 # Reinstate "Save As..." shortcut.
 defaults write NSGlobalDomain NSUserKeyEquivalents -dict "Save As..." -string "@$s"
 
+# Reduce space between menu bar icons.
+defaults -currentHost write -globalDomain NSStatusItemSelectionPadding -int 6
+defaults -currentHost write -globalDomain NSStatusItemSpacing -int 6
+
 #########
 # MOUSE #
 #########
