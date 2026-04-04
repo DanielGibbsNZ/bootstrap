@@ -462,3 +462,14 @@ defaults write com.apple.ActivityMonitor SortDirection -int 0
 # Enable the debug menu in Disk Utility.
 defaults write com.apple.DiskUtility DUDebugMenuEnabled -bool true
 defaults write com.apple.DiskUtility advanced-image-options -bool true
+
+###############
+# AMPHETAMINE #
+###############
+
+AMPHETAMINE_CONFIG="$HOME/Library/Containers/com.if.Amphetamine/Data/Library/Preferences/com.if.Amphetamine.plist"
+
+defaults write "${AMPHETAMINE_CONFIG}" "Icon Style" -int 6
+defaults write "${AMPHETAMINE_CONFIG}" "Lower Icon Opacity" -bool true
+defaults write "${AMPHETAMINE_CONFIG}" "Status Item Click" -int 2
+defaults write "${AMPHETAMINE_CONFIG}" "Hide Dock Icon" -bool true
