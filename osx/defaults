@@ -30,11 +30,8 @@ defaults write com.apple.print.PrintingPrefs "Quit When Finished" -bool true
 # Disable the "Are you sure you want to open this application?" dialog.
 defaults write com.apple.LaunchServices LSQuarantine -bool false
 
-# Disable Notification Center and remove the menu bar icon.
-launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist 2>/dev/null
-
 # Disable annoying emoji "suggestions" when using character picker.
-sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist emoji_enhancements -dict-add Enabled -bool NO
+defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist emoji_enhancements -dict-add Enabled -bool NO
 
 ##################
 # USER INTERFACE #
@@ -146,9 +143,6 @@ defaults write NSGlobalDomain KeyRepeat -int 1
 # Enable full keyboard access for all controls (e.g. enable Tab in modal dialogs).
 defaults write NSGlobalDomain AppleLeopardUIMode -int 3
 
-# Stop iTunes from responding to the leopard media keys.
-launchctl unload -w /System/Library/LaunchAgents/com.apple.rcd.plist 2>/dev/null
-
 ###############
 # SCREENSHOTS #
 ###############
@@ -199,9 +193,6 @@ defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 # Disable the warning before emptying the Trash.
 defaults write com.apple.finder WarnOnEmptyTrash -bool false
 
-# Empty Trash securely by default.
-defaults write com.apple.finder EmptyTrashSecurely -bool true
-
 # Show icons for external hard drives and removable media on the Desktop.
 defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
 defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool true
@@ -216,40 +207,8 @@ defaults write NSGlobalDomain com.apple.springing.delay -float 0
 # Avoid creating .DS_Store files on network volumes.
 defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 
-# Enable AirDrop over Ethernet and on unsupported Macs running Lion.
-defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
-
 # Show the ~/Library folder.
 chflags nohidden "${HOME}/Library"
-
-#############
-# SPOTLIGHT #
-#############
-
-# Configure which items appear in Spotlight searches and in what order.
-defaults write com.apple.spotlight orderedItems -array \
-	'{"enabled" = 1;"name" = "APPLICATIONS";}' \
-	'{"enabled" = 1;"name" = "SYSTEM_PREFS";}' \
-	'{"enabled" = 1;"name" = "MENU_CONVERSION";}' \
-	'{"enabled" = 1;"name" = "MENU_EXPRESSION";}' \
-	'{"enabled" = 1;"name" = "SOURCE";}' \
-	'{"enabled" = 1;"name" = "DIRECTORIES";}' \
-	'{"enabled" = 1;"name" = "PDF";}' \
-	'{"enabled" = 1;"name" = "DOCUMENTS";}' \
-	'{"enabled" = 1;"name" = "CONTACT";}' \
-	'{"enabled" = 1;"name" = "MUSIC";}' \
-	'{"enabled" = 1;"name" = "EVENT_TODO";}' \
-	'{"enabled" = 1;"name" = "IMAGES";}' \
-	'{"enabled" = 1;"name" = "BOOKMARKS";}' \
-	'{"enabled" = 0;"name" = "FONTS";}' \
-	'{"enabled" = 0;"name" = "MESSAGES";}' \
-	'{"enabled" = 0;"name" = "MOVIES";}' \
-	'{"enabled" = 0;"name" = "PRESENTATIONS";}' \
-	'{"enabled" = 0;"name" = "SPREADSHEETS";}' \
-	'{"enabled" = 0;"name" = "MENU_DEFINITION";}' \
-	'{"enabled" = 0;"name" = "MENU_OTHER";}' \
-	'{"enabled" = 0;"name" = "MENU_WEBSEARCH";}' \
-	'{"enabled" = 0;"name" = "MENU_SPOTLIGHT_SUGGESTIONS";}'
 
 ########
 # DOCK #
@@ -285,15 +244,9 @@ defaults write com.apple.dock mouse-over-hilite-stack -bool true
 # Disable dock automatic hiding.
 defaults write com.apple.dock autohide -bool false
 
-################################
-# SPACES/DASHBOARD/SCREENSAVER #
-################################
-
-# Disable Dashboard.
-defaults write com.apple.dashboard mcx-disabled -bool true
-
-# Don’t show Dashboard as a Space.
-defaults write com.apple.dock dashboard-in-overlay -bool true
+######################
+# SPACES/SCREENSAVER #
+######################
 
 # Don’t automatically rearrange Spaces based on most recent use.
 defaults write com.apple.dock mru-spaces -bool false
@@ -317,24 +270,6 @@ defaults write com.apple.dock wvous-br-modifier -int 0
 # Require password 5 seconds after sleep or screen saver begins.
 defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 5
-
-###################
-# ARCHIVE UTILITY #
-###################
-
-# Move archives to trash after extraction
-defaults write com.apple.archiveutility "dearchive-move-after" -string "~/.Trash"
-
-##########
-# CD/DVD #
-##########
-
-# Disable CD/DVD automatic actions.
-defaults write com.apple.digihub com.apple.digihub.blank.cd.appeared -dict action 1
-defaults write com.apple.digihub com.apple.digihub.cd.music.appeared -dict action 1
-defaults write com.apple.digihub com.apple.digihub.cd.picture.appeared -dict action 1
-defaults write com.apple.digihub com.apple.digihub.blank.dvd.appeared -dict action 1
-defaults write com.apple.digihub com.apple.digihub.dvd.video.appeared -dict action 1
 
 ############
 # MESSAGES #
@@ -410,17 +345,6 @@ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebK
 
 # Add a context menu item for showing the Web Inspector in web views.
 defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
-
-##########
-# CHROME #
-##########
-
-# Disable the all-too-sensitive backswipe.
-defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
-defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
-
-# Use the system-native print preview dialog.
-defaults write com.google.Chrome DisablePrintPreview -bool true
 
 ########
 # MAIL #

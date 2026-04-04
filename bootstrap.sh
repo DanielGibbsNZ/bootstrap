@@ -2,7 +2,7 @@
 #
 # Bootstrap for my personal settings and configuration files.
 #
-ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps" "chrome" "other")
+ALL_SECTIONS=("config" "scripts" "defaults" "fonts" "homebrew" "packages" "pip" "apps" "browser" "other")
 SECTIONS=()
 FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
@@ -289,9 +289,8 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		printf "Downloading defaults... "
 		if ${DOWNLOAD} "${FILE_LOCATION}/osx/defaults" ${OUTPUT} "${TMP_DIR}/defaults"; then
 			echo -e "\033[32mDONE\033[0m"
-			printf "Setting defaults... (may require password)"
-			bash "${TMP_DIR}/defaults"
-			echo -e "\033[32mDONE\033[0m"
+			echo "Setting defaults... (requires password)"
+			sudo bash "${TMP_DIR}/defaults"
 			echo "If this is the first time you're setting these defaults, you may need to restart your computer."
 		else
 			echo -e "\033[31mFAILED\033[0m"
@@ -463,22 +462,24 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		fi
 	fi
 
-	if do_section "chrome"; then
-		# Check whether Chrome is installed.
+	if do_section "browser"; then
+		BROWSER_NAME="Helium"
+		EXTENSIONS_DIR="${HOME}/Library/Application Support/net.imput.helium/Default/Extensions"
+
+		# Check whether the browser is installed.
 		echo
-		echo -e "\033[37m===>\033[0m CHROME \033[37m<===\033[0m"
-		if [ -e "/Applications/Google Chrome.app" ]; then
-			printf "Downloading Chrome extension list... "
-			if ${DOWNLOAD} "${FILE_LOCATION}/osx/chrome-extensions" ${OUTPUT} "${TMP_DIR}/chrome-extensions"; then
+		echo -e "\033[37m===>\033[0m BROWSER \033[37m<===\033[0m"
+		if [ -e "/Applications/${BROWSER_NAME}.app" ]; then
+			printf "Downloading browser extension list... "
+			if ${DOWNLOAD} "${FILE_LOCATION}/osx/browser-extensions" ${OUTPUT} "${TMP_DIR}/browser-extensions"; then
 				echo -e "\033[32mDONE\033[0m"
 				echo
 
 				# Check for missing extensions.
 				OLDIFS="${IFS}"
 				IFS=$'\n'
-				EXTENSIONS_DIR="${HOME}/Library/Application Support/Google/Chrome/Default/Extensions"
 				EXTENSIONS_TO_INSTALL=()
-				for EXTENSION in $(cat "${TMP_DIR}/chrome-extensions"); do
+				for EXTENSION in $(cat "${TMP_DIR}/browser-extensions"); do
 					EXTENSION_ID=$(echo "${EXTENSION}" | cut -d: -f1)
 					EXTENSION_NAME=$(echo "${EXTENSION}" | cut -d: -f2)
 					if [ ! -e "${EXTENSIONS_DIR}/${EXTENSION_ID}" ]; then
@@ -495,7 +496,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 				echo -e "\033[31mFAILED\033[0m"
 			fi
 		else
-			echo "Google Chrome is not installed."
+			echo "${BROWSER_NAME} is not installed."
 		fi
 	fi
 

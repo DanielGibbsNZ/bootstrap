@@ -3,7 +3,6 @@ colordiff
 direnv
 dos2unix
 exiftool
-faac
 ffmpeg
 git
 htop
@@ -12,12 +11,11 @@ imagemagick
 jpegoptim
 jq
 markdown
+mise
 nmap
 pngcrush
 python
-tmux
-unrar
+svg2png
+svgo
 vim
-wakeonlan
 wget
-wireshark
