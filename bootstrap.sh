@@ -414,7 +414,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 
 				# Check for missing casks.
 				CASKS_TO_INSTALL=()
-				brew cask list > "${TMP_DIR}/homebrew-casks-installed" 2>/dev/null
+				brew list --cask > "${TMP_DIR}/homebrew-casks-installed" 2>/dev/null
 				for CASK in $(cat "${TMP_DIR}/homebrew-casks"); do
 					LAST_PART=$(echo "${CASK}" | grep -o "[^/]*$")
 					if ! grep "^${LAST_PART}$" -q "${TMP_DIR}/homebrew-casks-installed"; then
