@@ -35,7 +35,13 @@ function do_section {
 function install_file {
 	FILE="$1"
 	DEST="$2"
-	printf "Installing ${FILE}... "
+	if [ -n "$3" ]; then
+		NAME="$3"
+	else
+		NAME="$1"
+	fi
+
+	printf "Installing ${NAME}... "
 	if [ -e "${DEST}/${FILE}" -a "${ALWAYS_REPLACE}" = "no" ]; then
 		# If file already exists check for differences.
 		# Unless the --replace argument was given.
@@ -267,6 +273,16 @@ if [ "${PLATFORM}" = "OS X" ]; then
 		if ${DOWNLOAD} "${FILE_LOCATION}/osx/.phoenix.js" ${OUTPUT} "${TMP_DIR}/.phoenix.js"; then
 			echo -e "\033[32mDONE\033[0m"
 			install_file ".phoenix.js" "${INSTALL_LOCATION}"
+		else
+			echo -e "\033[31mFAILED\033[0m"
+		fi
+
+		# Download and install Ghostty config.
+		printf "Downloading Ghostty config... "
+		if ${DOWNLOAD} "${FILE_LOCATION}/osx/ghostty.config" ${OUTPUT} "${TMP_DIR}/config"; then
+			echo -e "\033[32mDONE\033[0m"
+			GHOSTTY_CONFIG_LOCATION="${HOME}/Library/Application Support/com.mitchellh.ghostty"
+			install_file "config" "${GHOSTTY_CONFIG_LOCATION}" "Ghostty config"
 		else
 			echo -e "\033[31mFAILED\033[0m"
 		fi

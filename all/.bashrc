@@ -88,3 +88,7 @@ elif [ "${PLATFORM}" = "OS X" ]; then
 	alias grep='grep --color=auto'
 	alias fixpref='killall -u $(whoami) cfprefsd'
 fi
+
+if [ -n "${GHOSTTY_RESOURCES_DIR}" ]; then
+    builtin source "${GHOSTTY_RESOURCES_DIR}/shell-integration/bash/ghostty.bash"
+fi
