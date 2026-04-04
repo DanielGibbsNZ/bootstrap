@@ -8,6 +8,9 @@ FILE_LOCATION="https://raw.githubusercontent.com/DanielGibbsNZ/bootstrap/master"
 INSTALL_LOCATION="${HOME}"
 CONFIG_FILES=(".bashrc" ".inputrc" ".vimrc" ".gitconfig" ".gitignore_global")
 
+# Set to true to test locally without downloading files.
+DEBUG=false
+
 # Function to check if a section is valid.
 function valid_section {
 	for _SECTION in "${ALL_SECTIONS[@]}"; do
@@ -86,6 +89,13 @@ elif command -v wget &>/dev/null; then
 else
 	echo "Can't bootstrap without cURL or wget."
 	exit 1
+fi
+
+# If debug mode is enabled, copy files from the local directory.
+if [ "${DEBUG}" == "true" ]; then
+	DOWNLOAD="cp"
+	OUTPUT=""
+	FILE_LOCATION="./"
 fi
 
 # Check for colordiff.
