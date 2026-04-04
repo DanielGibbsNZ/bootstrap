@@ -43,9 +43,9 @@ if [ -n "$BASH_VERSION" ]; then
 		eval "$(direnv hook bash)"
 	fi
 
-	# Set up asdf.
-	if [ -f "/usr/local/opt/asdf/asdf.sh" ]; then
-		source /usr/local/opt/asdf/asdf.sh
+	# Set up mise.
+	if command -v mise &>/dev/null; then
+		eval "$(mise activate bash)"
 	fi
 
 	# Include .bashrc if it exists.

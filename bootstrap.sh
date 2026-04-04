@@ -529,7 +529,7 @@ if [ "${PLATFORM}" = "OS X" ]; then
 	if do_section "other"; then
 		echo
 		echo -e "\033[37m===>\033[0m OTHER \033[37m<===\033[0m"
-		echo -e "* Install asdf plugins"
+		echo -e "* Install NodeJS versions via Mise"
 	fi
 fi
 
